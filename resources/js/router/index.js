@@ -56,6 +56,48 @@ const routes = [
         meta: { requiresAuth: true, title: 'scans.title' },
     },
     {
+        path: '/alerts',
+        name: 'alerts',
+        component: () => import('@/pages/AlertsPage.vue'),
+        meta: { requiresAuth: true, title: 'alerts.title' },
+    },
+    {
+        path: '/appointments',
+        name: 'appointments',
+        component: () => import('@/pages/AppointmentsPage.vue'),
+        meta: { requiresAuth: true, title: 'appointments.title' },
+    },
+    {
+        path: '/medications',
+        name: 'medications',
+        component: () => import('@/pages/MedicationsPage.vue'),
+        meta: { requiresAuth: true, title: 'medications.title' },
+    },
+    {
+        path: '/devices/:uuid',
+        name: 'device-detail',
+        component: () => import('@/pages/DeviceDetailPage.vue'),
+        meta: { requiresAuth: true, title: 'devices.detail_title' },
+    },
+    {
+        path: '/sync-monitor',
+        name: 'sync-monitor',
+        component: () => import('@/pages/SyncMonitorPage.vue'),
+        meta: { requiresAuth: true, title: 'sync.title' },
+    },
+    {
+        path: '/users',
+        name: 'users',
+        component: () => import('@/pages/UsersPage.vue'),
+        meta: { requiresAuth: true, adminOnly: true, title: 'users.title' },
+    },
+    {
+        path: '/export',
+        name: 'export',
+        component: () => import('@/pages/ExportPage.vue'),
+        meta: { requiresAuth: true, title: 'export.title' },
+    },
+    {
         path: '/:pathMatch(.*)*',
         name: 'not-found',
         component: () => import('@/pages/NotFoundPage.vue'),
@@ -82,6 +124,10 @@ router.beforeEach(async (to) => {
 
     // A restored token has no user attached yet. Resolve it once, here, so pages
     // can rely on auth.user being populated instead of each guarding for null.
+    //
+    // This must run BEFORE any role check: on a full page load (a typed URL or a
+    // refresh) auth.user is still null, so a role check placed above it would
+    // short-circuit and wave the request straight through.
     if (auth.isAuthenticated && !auth.user) {
         try {
             await auth.fetchUser();
@@ -89,6 +135,12 @@ router.beforeEach(async (to) => {
             // The 401 interceptor already cleared the token and redirected.
             return { name: 'login' };
         }
+    }
+
+    // The API enforces this too; this only avoids landing someone on a page
+    // where every request 403s.
+    if (to.meta.adminOnly && auth.user?.role !== 'admin') {
+        return { name: 'dashboard' };
     }
 
     return true;

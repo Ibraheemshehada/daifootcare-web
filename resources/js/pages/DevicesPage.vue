@@ -57,9 +57,12 @@ function formatDate(value) {
                         class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                     >
                         <td class="px-4 py-3">
-                            <code class="text-xs text-slate-600 dark:text-slate-400">
-                                {{ device.device_uuid.slice(0, 8) }}…
-                            </code>
+                            <RouterLink
+                                :to="{ name: 'device-detail', params: { uuid: device.device_uuid } }"
+                                class="text-cyan-800 hover:underline dark:text-cyan-300"
+                            >
+                                <code class="text-xs">{{ device.device_uuid.slice(0, 8) }}…</code>
+                            </RouterLink>
                             <p v-if="device.app_version" class="mt-0.5 text-xs text-slate-400">
                                 v{{ device.app_version }}
                             </p>

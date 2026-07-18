@@ -10,7 +10,16 @@
         "scans": "Scan Feed",
         "logout": "Sign out",
         "language": "Language",
-        "study": "Study"
+        "study": "Study",
+        "alerts": "Alerts",
+        "appointments": "Appointments",
+        "medications": "Medications",
+        "sync": "Sync monitor",
+        "users": "Users & roles",
+        "export": "Export",
+        "group_clinical": "Clinical",
+        "group_operations": "Operations",
+        "group_admin": "Administration"
     },
     "login": {
         "title": "Sign in",
@@ -51,7 +60,9 @@
         "last_seen": "Last seen",
         "downloaded": "Downloaded",
         "not_downloaded": "Not downloaded",
-        "empty": "No devices have registered yet."
+        "empty": "No devices have registered yet.",
+        "scans_sent": "Scans sent",
+        "detail_title": "Device"
     },
     "patients": {
         "title": "Patients",
@@ -207,5 +218,87 @@
         "dark": "Dark",
         "system": "System",
         "toggle": "Theme: {mode}. Click to change."
+    },
+    "alerts": {
+        "title": "Alerts",
+        "subtitle": "Scans flagged for infection or impaired blood flow, most serious first.",
+        "flags": "Flags",
+        "severity": "Severity",
+        "empty": "No scans are currently flagged."
+    },
+    "appointments": {
+        "title": "Appointments",
+        "subtitle": "Appointments across all patients.",
+        "when": "When",
+        "what": "Appointment",
+        "where": "Location",
+        "filter": "Filter appointments",
+        "scope_upcoming": "Upcoming",
+        "scope_past": "Past",
+        "scope_all": "All",
+        "empty": "No appointments in this range."
+    },
+    "medications": {
+        "title": "Medications",
+        "subtitle": "Prescribed medications and 30-day adherence.",
+        "name": "Medication",
+        "dosage": "Dose",
+        "frequency": "Frequency",
+        "adherence": "Adherence, 30d",
+        "status": "Status",
+        "active": "Active",
+        "stopped": "Stopped",
+        "per_day": "{n}× daily",
+        "no_logs": "No logs",
+        "empty": "No medications recorded yet."
+    },
+    "sync": {
+        "title": "Sync monitor",
+        "subtitle": "Whether patient records are actually reaching the server.",
+        "batches_24h": "Batches, 24h",
+        "records_24h": "Records, 24h",
+        "failed_24h": "Failed, 24h",
+        "stale_devices": "Not seen in 7 days",
+        "failed_only": "Show only failed or partial batches",
+        "when": "When",
+        "records": "Records",
+        "status": "Status",
+        "batches": "Batches",
+        "failed_batches": "Failed batches",
+        "history": "Sync history",
+        "empty": "No sync activity yet.",
+        "n_failed": "{n} failed",
+        "status_success": "Success",
+        "status_partial": "Partial",
+        "status_failed": "Failed",
+        "status_pending": "Pending"
+    },
+    "users": {
+        "title": "Users & roles",
+        "subtitle": "Who can see what.",
+        "name": "Name",
+        "role": "Role",
+        "role_admin": "Admin",
+        "role_doctor": "Doctor",
+        "role_patient": "Patient",
+        "you": "You",
+        "change_role": "Change role for {name}",
+        "empty": "No users found."
+    },
+    "export": {
+        "title": "Export",
+        "subtitle": "Download study data as CSV.",
+        "download": "Download CSV",
+        "failed": "The export could not be generated. Please try again.",
+        "warning_title": "This data identifies patients",
+        "warning_body": "Exported files contain clinical records linked to named participants and leave every access control behind once downloaded. Store them accordingly. Each download is logged.",
+        "wound-scans_title": "Wound scans",
+        "wound-scans_body": "Every scan with measurements, tissue, risk flags and the model version that produced it.",
+        "glucose_title": "Blood glucose",
+        "glucose_body": "All readings with their tag and timestamp.",
+        "sus_title": "SUS responses",
+        "sus_body": "Raw items Q1–Q10 plus the computed score and consent version, so items can be re-analysed.",
+        "self-care_title": "Self-care logs",
+        "self-care_body": "Per-task daily completion records."
     }
 }

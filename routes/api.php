@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\Api\V1\AuthController;
+use App\Http\Controllers\Api\V1\ClinicalController;
+use App\Http\Controllers\Api\V1\ExportController;
+use App\Http\Controllers\Api\V1\OperationsController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\DeviceController;
 use App\Http\Controllers\Api\V1\GuestController;
@@ -65,6 +68,25 @@ Route::prefix('v1')->group(function () {
             // Full clinical record for one patient, assembled in a single payload.
             Route::get('patients/{patient}/record', [PatientRecordController::class, 'show']);
             Route::get('study/summary', [StudyController::class, 'summary']);
+
+            // Cross-patient clinical work queues.
+            Route::get('alerts', [ClinicalController::class, 'alerts']);
+            Route::get('appointments', [ClinicalController::class, 'appointments']);
+            Route::get('medications', [ClinicalController::class, 'medications']);
+
+            // Fleet + sync health.
+            Route::get('devices/{uuid}/detail', [OperationsController::class, 'device']);
+            Route::get('sync-monitor', [OperationsController::class, 'syncMonitor']);
+
+            // CSV export of study data.
+            Route::get('export/{type}', [ExportController::class, 'download']);
+
+            // User administration is admin-only, not merely clinician-only:
+            // granting roles is a different privilege from reading charts.
+            Route::middleware('admin')->group(function () {
+                Route::get('users', [OperationsController::class, 'users']);
+                Route::patch('users/{user}/role', [OperationsController::class, 'updateRole']);
+            });
         });
     });
 });

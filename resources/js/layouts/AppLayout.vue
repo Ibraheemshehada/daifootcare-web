@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth';
@@ -12,13 +12,39 @@ const router = useRouter();
 
 const sidebarOpen = ref(false);
 
-const links = [
-    { name: 'dashboard', label: 'nav.dashboard', icon: 'i-lucide-layout-dashboard' },
-    { name: 'patients', label: 'nav.patients', icon: 'i-lucide-users' },
-    { name: 'devices', label: 'nav.devices', icon: 'i-lucide-smartphone' },
-    { name: 'scans', label: 'nav.scans', icon: 'i-lucide-activity' },
-    { name: 'study', label: 'nav.study', icon: 'i-lucide-flask-conical' },
-];
+/**
+ * Grouped rather than one flat list: at eleven entries a single column stops
+ * being scannable, and the groups match how the work actually splits.
+ */
+const groups = computed(() => [
+    {
+        key: 'clinical',
+        links: [
+            { name: 'dashboard', label: 'nav.dashboard', icon: 'i-lucide-layout-dashboard' },
+            { name: 'alerts', label: 'nav.alerts', icon: 'i-lucide-siren' },
+            { name: 'patients', label: 'nav.patients', icon: 'i-lucide-users' },
+            { name: 'scans', label: 'nav.scans', icon: 'i-lucide-activity' },
+            { name: 'appointments', label: 'nav.appointments', icon: 'i-lucide-calendar' },
+            { name: 'medications', label: 'nav.medications', icon: 'i-lucide-pill' },
+        ],
+    },
+    {
+        key: 'operations',
+        links: [
+            { name: 'devices', label: 'nav.devices', icon: 'i-lucide-smartphone' },
+            { name: 'sync-monitor', label: 'nav.sync', icon: 'i-lucide-refresh-cw' },
+            { name: 'study', label: 'nav.study', icon: 'i-lucide-flask-conical' },
+            { name: 'export', label: 'nav.export', icon: 'i-lucide-download' },
+        ],
+    },
+    {
+        key: 'admin',
+        // Hidden entirely for non-admins rather than shown and refused.
+        links: auth.user?.role === 'admin'
+            ? [{ name: 'users', label: 'nav.users', icon: 'i-lucide-shield' }]
+            : [],
+    },
+].filter((g) => g.links.length));
 
 function switchLocale(code) {
     applyLocale(code);
@@ -57,18 +83,23 @@ async function signOut() {
                 </div>
             </div>
 
-            <nav class="space-y-1 p-3" aria-label="Main">
-                <RouterLink
-                    v-for="link in links"
-                    :key="link.name"
-                    :to="{ name: link.name }"
-                    class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-                    active-class="bg-cyan-50 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-200"
-                    @click="sidebarOpen = false"
-                >
-                    <UIcon :name="link.icon" class="size-5 shrink-0" />
-                    {{ t(link.label) }}
-                </RouterLink>
+            <nav class="space-y-4 overflow-y-auto p-3 pb-40" aria-label="Main">
+                <div v-for="g in groups" :key="g.key">
+                    <p class="px-3 pb-1 text-[0.65rem] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-500">
+                        {{ t(`nav.group_${g.key}`) }}
+                    </p>
+                    <RouterLink
+                        v-for="link in g.links"
+                        :key="link.name"
+                        :to="{ name: link.name }"
+                        class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
+                        active-class="bg-cyan-50 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-200"
+                        @click="sidebarOpen = false"
+                    >
+                        <UIcon :name="link.icon" class="size-5 shrink-0" />
+                        {{ t(link.label) }}
+                    </RouterLink>
+                </div>
             </nav>
 
             <div class="absolute inset-x-0 bottom-0 border-t border-slate-200 p-3 dark:border-slate-800">
