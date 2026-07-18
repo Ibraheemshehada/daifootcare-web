@@ -58,10 +58,42 @@ All routes are prefixed `/api/v1`. Authenticated routes need `Authorization: Bea
 | GET | `/devices` | auth | Own devices; clinicians see all |
 | POST | `/wound-scans/sync` | auth | **Idempotent batch upsert** (see below) |
 | GET | `/wound-scans` | auth | Own scans; clinicians see all |
+| POST | `/sync/{type}` | auth | **Idempotent batch upsert** for every other record type |
 | GET | `/patients` | clinician | Patient list |
+| GET | `/patients/{id}/record` | clinician | Full clinical record for one patient |
 | GET | `/dashboard/stats` | clinician | Aggregate counts |
+| GET | `/study/summary` | clinician | SUS, satisfaction, engagement, consent split |
 
-`register`/`login` are throttled to 6/min; `sync` to 30/min.
+`register`/`login` are throttled to 6/min; `wound-scans/sync` to 30/min; `sync/{type}` to 60/min.
+
+### Record types
+
+`POST /api/v1/sync/{type}` accepts the same envelope as the wound-scan endpoint
+(`device_uuid`, optional `batch_uuid`, `records[]` each with a `local_uuid`) for:
+
+| type | Carries |
+|---|---|
+| `glucose` | `value_mgdl`, `tag`, `measured_at` |
+| `medications` | `name`, `dosage`, `times_per_day`, `is_active` |
+| `medication-logs` | `medication_local_uuid`, `log_date`, `dose_index`, `taken` |
+| `self-care` | `item_key`, `log_date`, `done_at` |
+| `qol` | `pain`, `mobility`, `emotional` (0–10, higher = worse), `recorded_at` |
+| `satisfaction` | `ease_of_use`, `usefulness`, `would_continue` (1–5), `recorded_at` |
+| `appointments` | `title`, `scheduled_at`, `location`, `notes` |
+| `sus` | `q1`…`q10` (1–5), `recorded_at`, `consent_version` |
+| `engagement` | `name`, `target`, `value`, `occurred_at` |
+| `consents` | `version`, `accepted_at`, `locale`, `covers_prior` |
+
+An unknown type returns `404` listing the supported ones.
+
+**SUS is scored server-side** from the raw items using the official rule (odd
+items `r−1`, even `5−r`, ×2.5). The client's score is never trusted: a
+client-side scoring bug would otherwise write bad numbers into study data, and
+all-5s must yield **50**, not 100.
+
+A `medication-log` may arrive before the `medication` that owns it. It stays
+linked by `medication_local_uuid` and resolves to a foreign key once that row
+syncs, so ordering between batches does not matter.
 
 ### The sync contract
 

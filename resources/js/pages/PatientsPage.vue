@@ -54,8 +54,13 @@ function formatDate(value) {
                         :key="patient.id"
                         class="transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50"
                     >
-                        <td class="px-4 py-3 text-slate-900 dark:text-white">
-                            {{ patient.user?.name ?? '—' }}
+                        <td class="px-4 py-3">
+                            <RouterLink
+                                :to="{ name: 'patient-detail', params: { id: patient.id } }"
+                                class="font-medium text-cyan-800 hover:underline dark:text-cyan-300"
+                            >
+                                {{ patient.user?.name ?? '—' }}
+                            </RouterLink>
                         </td>
                         <td class="px-4 py-3 text-slate-600 dark:text-slate-300">
                             {{ patient.user?.email ?? '—' }}

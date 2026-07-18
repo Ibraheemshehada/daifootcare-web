@@ -3,7 +3,10 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\DeviceController;
+use App\Http\Controllers\Api\V1\HealthRecordSyncController;
 use App\Http\Controllers\Api\V1\PatientController;
+use App\Http\Controllers\Api\V1\PatientRecordController;
+use App\Http\Controllers\Api\V1\StudyController;
 use App\Http\Controllers\Api\V1\WoundScanSyncController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,11 +36,20 @@ Route::prefix('v1')->group(function () {
 
         Route::get('wound-scans', [WoundScanSyncController::class, 'index']);
 
+        // Everything else the app records: glucose, medications, medication-logs,
+        // self-care, qol, satisfaction, appointments, sus, engagement, consents.
+        // One route, one idempotent code path — see HealthRecordSyncController.
+        Route::post('sync/{type}', [HealthRecordSyncController::class, 'sync'])
+            ->middleware('throttle:60,1');
+
         // --- Clinician only ---------------------------------------------
         Route::middleware('clinician')->group(function () {
             Route::get('dashboard/stats', [DashboardController::class, 'stats']);
             Route::get('patients', [PatientController::class, 'index']);
             Route::get('patients/{patient}', [PatientController::class, 'show']);
+            // Full clinical record for one patient, assembled in a single payload.
+            Route::get('patients/{patient}/record', [PatientRecordController::class, 'show']);
+            Route::get('study/summary', [StudyController::class, 'summary']);
         });
     });
 });

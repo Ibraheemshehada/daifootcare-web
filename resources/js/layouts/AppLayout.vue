@@ -16,6 +16,7 @@ const links = [
     { name: 'patients', label: 'nav.patients', icon: 'i-lucide-users' },
     { name: 'devices', label: 'nav.devices', icon: 'i-lucide-smartphone' },
     { name: 'scans', label: 'nav.scans', icon: 'i-lucide-activity' },
+    { name: 'study', label: 'nav.study', icon: 'i-lucide-flask-conical' },
 ];
 
 function switchLocale(code) {

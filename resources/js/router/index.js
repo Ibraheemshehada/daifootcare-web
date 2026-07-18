@@ -38,6 +38,18 @@ const routes = [
         meta: { requiresAuth: true, title: 'patients.title' },
     },
     {
+        path: '/patients/:id',
+        name: 'patient-detail',
+        component: () => import('@/pages/PatientDetailPage.vue'),
+        meta: { requiresAuth: true, title: 'patient.title' },
+    },
+    {
+        path: '/study',
+        name: 'study',
+        component: () => import('@/pages/StudyPage.vue'),
+        meta: { requiresAuth: true, title: 'study.title' },
+    },
+    {
         path: '/scans',
         name: 'scans',
         component: () => import('@/pages/ScansPage.vue'),

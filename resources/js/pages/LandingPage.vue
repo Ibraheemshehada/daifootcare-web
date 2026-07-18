@@ -3,6 +3,20 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { motion } from 'motion-v';
 import { SUPPORTED_LOCALES, applyLocale } from '@/i18n';
+import appHomeUrl from '../../images/app-home.webp';
+import appHistoryUrl from '../../images/app-history.webp';
+import appSelfCareUrl from '../../images/app-selfcare.webp';
+
+/*
+ * Real screens from the shipped app, captured on a device. Not mockups: the
+ * landing pattern for a mobile product calls for showing the actual thing, and
+ * an invented UI would misrepresent what a patient gets.
+ */
+const shots = [
+    { key: 'home', src: appHomeUrl },
+    { key: 'history', src: appHistoryUrl },
+    { key: 'selfcare', src: appSelfCareUrl },
+];
 
 const { t, locale } = useI18n();
 
@@ -22,6 +36,18 @@ const rise = (delay = 0) => ({
     inViewOptions: { once: true, margin: '-80px' },
     transition: { duration: 0.5, delay, ease: [0.22, 1, 0.36, 1] },
 });
+
+/*
+ * Trust strip. Every figure here is a fact about the shipped app — three TFLite
+ * models, two languages, and the 11-criterion accessibility check it passes on
+ * Android. No invented ratings or user counts: this is a clinical study tool,
+ * and fabricated social proof on a medical page is worse than none.
+ */
+const facts = [
+    { key: 'models' },
+    { key: 'languages' },
+    { key: 'offline' },
+];
 
 const steps = [
     { icon: 'i-lucide-camera', key: 'capture' },
@@ -97,56 +123,103 @@ const accentClasses = {
         </header>
 
         <!-- ── Hero ────────────────────────────────────────────── -->
-        <section id="top" class="relative overflow-hidden px-5 pt-32 pb-20 sm:pt-40 sm:pb-28">
+        <section id="top" class="relative overflow-hidden px-5 pt-28 pb-16 sm:pt-36 sm:pb-20">
             <!-- Decorative only: hidden from assistive tech. -->
             <div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10">
                 <div
-                    class="absolute start-1/2 top-[-12rem] size-[36rem] -translate-x-1/2 rounded-full bg-cyan-200/40 blur-3xl dark:bg-cyan-900/20"
+                    class="absolute start-1/2 top-[-14rem] size-[40rem] -translate-x-1/2 rounded-full bg-cyan-200/40 blur-3xl dark:bg-cyan-900/20"
                 />
             </div>
 
-            <div class="mx-auto max-w-3xl text-center">
-                <motion.div v-bind="rise(0)">
-                    <span
-                        class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+            <div class="mx-auto grid max-w-6xl items-center gap-12 lg:grid-cols-[1.05fr_auto] lg:gap-16">
+                <!-- Copy -->
+                <div class="text-center lg:text-start">
+                    <motion.div v-bind="rise(0)">
+                        <span
+                            class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+                        >
+                            <UIcon name="i-lucide-cpu" class="size-3.5 text-cyan-700 dark:text-cyan-400" />
+                            {{ t('landing.badge') }}
+                        </span>
+                    </motion.div>
+
+                    <motion.h1
+                        v-bind="rise(0.08)"
+                        class="mt-6 text-balance text-4xl font-semibold leading-[1.1] tracking-tight text-slate-900 sm:text-5xl lg:text-[3.4rem] dark:text-white"
                     >
-                        <UIcon name="i-lucide-cpu" class="size-3.5 text-cyan-700 dark:text-cyan-400" />
-                        {{ t('landing.badge') }}
-                    </span>
-                </motion.div>
+                        {{ t('landing.hero_title') }}
+                    </motion.h1>
 
-                <motion.h1
-                    v-bind="rise(0.08)"
-                    class="mt-6 text-balance text-4xl font-semibold leading-[1.1] tracking-tight text-slate-900 sm:text-5xl md:text-6xl dark:text-white"
-                >
-                    {{ t('landing.hero_title') }}
-                </motion.h1>
+                    <motion.p
+                        v-bind="rise(0.16)"
+                        class="mx-auto mt-6 max-w-xl text-pretty text-lg leading-relaxed text-slate-700 lg:mx-0 dark:text-slate-300"
+                    >
+                        {{ t('landing.hero_body') }}
+                    </motion.p>
 
-                <motion.p
-                    v-bind="rise(0.16)"
-                    class="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-slate-700 dark:text-slate-300"
-                >
-                    {{ t('landing.hero_body') }}
-                </motion.p>
+                    <motion.div
+                        v-bind="rise(0.24)"
+                        class="mt-9 flex flex-col items-center gap-3 sm:flex-row sm:justify-center lg:justify-start"
+                    >
+                        <UButton size="xl" :to="{ name: 'login' }" :label="t('landing.cta_primary')" />
+                        <UButton
+                            size="xl"
+                            color="neutral"
+                            variant="outline"
+                            to="#how"
+                            :label="t('landing.cta_secondary')"
+                        />
+                    </motion.div>
 
+                    <motion.p v-bind="rise(0.32)" class="mt-6 text-sm text-slate-600 dark:text-slate-400">
+                        {{ t('landing.hero_note') }}
+                    </motion.p>
+                </div>
+
+                <!-- Device mockup.
+                     A real screenshot of the shipped app, not an illustration —
+                     the landing pattern for a mobile product calls for showing the
+                     actual thing, and a mocked-up UI would misrepresent it. -->
                 <motion.div
-                    v-bind="rise(0.24)"
-                    class="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row"
+                    :initial="{ opacity: 0, y: 32 }"
+                    :animate="{ opacity: 1, y: 0 }"
+                    :transition="{ duration: 0.7, delay: 0.2, ease: [0.22, 1, 0.36, 1] }"
+                    class="mx-auto w-full max-w-[280px] lg:max-w-[300px]"
                 >
-                    <UButton size="xl" :to="{ name: 'login' }" :label="t('landing.cta_primary')" />
-                    <UButton
-                        size="xl"
-                        color="neutral"
-                        variant="outline"
-                        to="#how"
-                        :label="t('landing.cta_secondary')"
-                    />
+                    <div
+                        class="relative rounded-[2.5rem] border border-slate-300 bg-slate-900 p-2.5 shadow-2xl shadow-slate-900/20 dark:border-slate-700 dark:shadow-black/40"
+                    >
+                        <!-- Speaker slot: decorative, so hidden from assistive tech. -->
+                        <div
+                            aria-hidden="true"
+                            class="absolute start-1/2 top-[0.9rem] z-10 h-1.5 w-16 -translate-x-1/2 rounded-full bg-slate-700"
+                        />
+                        <img
+                            :src="appHomeUrl"
+                            :alt="t('landing.screenshot_alt')"
+                            width="540"
+                            height="1108"
+                            loading="eager"
+                            decoding="async"
+                            class="w-full rounded-[2rem]"
+                        />
+                    </div>
                 </motion.div>
-
-                <motion.p v-bind="rise(0.32)" class="mt-6 text-sm text-slate-600 dark:text-slate-400">
-                    {{ t('landing.hero_note') }}
-                </motion.p>
             </div>
+        </section>
+
+        <!-- ── Trust strip ─────────────────────────────────────── -->
+        <section class="border-y border-slate-200 bg-slate-50 px-5 py-8 dark:border-slate-800 dark:bg-slate-900/40">
+            <dl class="mx-auto grid max-w-5xl gap-6 text-center sm:grid-cols-3">
+                <motion.div v-for="(f, i) in facts" :key="f.key" v-bind="rise(i * 0.06)">
+                    <dt class="text-2xl font-semibold tracking-tight text-slate-900 dark:text-white">
+                        {{ t(`landing.fact_${f.key}_value`) }}
+                    </dt>
+                    <dd class="mt-1 text-sm text-slate-600 dark:text-slate-400">
+                        {{ t(`landing.fact_${f.key}_label`) }}
+                    </dd>
+                </motion.div>
+            </dl>
         </section>
 
         <!-- ── Modes ───────────────────────────────────────────── -->
@@ -228,6 +301,53 @@ const accentClasses = {
                         </p>
                     </motion.li>
                 </ol>
+            </div>
+        </section>
+
+        <!-- ── Screenshots ─────────────────────────────────────── -->
+        <section class="overflow-hidden px-5 py-20 sm:py-24">
+            <div class="mx-auto max-w-5xl">
+                <motion.div v-bind="rise(0)" class="mx-auto max-w-2xl text-center">
+                    <h2 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
+                        {{ t('landing.shots_title') }}
+                    </h2>
+                    <p class="mt-4 text-pretty text-slate-700 dark:text-slate-300">
+                        {{ t('landing.shots_body') }}
+                    </p>
+                </motion.div>
+
+                <!-- Horizontal scroll below md so three tall phones never squeeze
+                     into a narrow viewport; snap points keep it feeling deliberate. -->
+                <ul
+                    class="mt-12 flex snap-x snap-mandatory gap-6 overflow-x-auto pb-4 md:grid md:grid-cols-3 md:overflow-visible"
+                >
+                    <motion.li
+                        v-for="(s, i) in shots"
+                        :key="s.key"
+                        v-bind="rise(i * 0.08)"
+                        class="w-[240px] shrink-0 snap-center md:w-auto"
+                    >
+                        <div
+                            class="rounded-[2rem] border border-slate-300 bg-slate-900 p-2 shadow-xl shadow-slate-900/10 dark:border-slate-700"
+                        >
+                            <img
+                                :src="s.src"
+                                :alt="t(`landing.shot_${s.key}_alt`)"
+                                width="540"
+                                height="1108"
+                                loading="lazy"
+                                decoding="async"
+                                class="w-full rounded-[1.6rem]"
+                            />
+                        </div>
+                        <h3 class="mt-4 text-center font-semibold text-slate-900 md:text-start dark:text-white">
+                            {{ t(`landing.shot_${s.key}_title`) }}
+                        </h3>
+                        <p class="mt-1 text-center text-sm text-slate-600 md:text-start dark:text-slate-400">
+                            {{ t(`landing.shot_${s.key}_body`) }}
+                        </p>
+                    </motion.li>
+                </ul>
             </div>
         </section>
 
