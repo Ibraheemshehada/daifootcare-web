@@ -1,0 +1,43 @@
+@import 'tailwindcss';
+@import '@nuxt/ui';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+@source '../**/*.vue';
+
+/*
+ * Design tokens — defined once here, referenced everywhere.
+ *
+ * Clinical UI constraint: this dashboard shows infection and ischaemia risk, so
+ * status colour is load-bearing information, not decoration. Every semantic
+ * colour below is chosen for >= 4.5:1 contrast on its surface, matching the
+ * standard the mobile app already holds itself to. Colour is never the only
+ * signal — risk is always accompanied by a text label.
+ */
+@theme {
+    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
+        'Segoe UI Symbol', 'Noto Color Emoji';
+
+    /* Risk semantics — shared vocabulary with the Flutter app's risk_badge. */
+    --color-risk-normal: oklch(0.55 0.13 155);
+    --color-risk-infection: oklch(0.52 0.20 25);
+    --color-risk-ischaemia: oklch(0.52 0.15 65);
+    --color-risk-high: oklch(0.46 0.21 15);
+
+    /* Sync / device state. */
+    --color-state-synced: oklch(0.55 0.13 155);
+    --color-state-pending: oklch(0.58 0.14 85);
+    --color-state-stale: oklch(0.55 0.02 260);
+}
+
+/* RTL: the layout is built on logical properties, so direction mostly handles
+   itself. Only genuinely directional glyphs need an explicit flip. */
+[dir='rtl'] .rtl-flip {
+    transform: scaleX(-1);
+}
+
+html {
+    scroll-behavior: smooth;
+}

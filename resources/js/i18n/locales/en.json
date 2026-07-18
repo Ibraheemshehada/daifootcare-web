@@ -1,0 +1,91 @@
+{
+    "app": {
+        "name": "DiaFootCare",
+        "subtitle": "Clinical Dashboard"
+    },
+    "nav": {
+        "dashboard": "Dashboard",
+        "devices": "Devices",
+        "patients": "Patients",
+        "scans": "Scan Feed",
+        "logout": "Sign out",
+        "language": "Language"
+    },
+    "login": {
+        "title": "Sign in",
+        "intro": "Clinical staff access to the DiaFootCare dashboard.",
+        "email": "Email address",
+        "password": "Password",
+        "submit": "Sign in",
+        "failed": "Those credentials don't match our records.",
+        "generic_error": "Sign-in failed. Please try again."
+    },
+    "dashboard": {
+        "title": "Overview",
+        "patients": "Patients",
+        "devices": "Registered devices",
+        "active_devices": "Active in last 7 days",
+        "scans_total": "Total scans",
+        "scans_7d": "Scans, last 7 days",
+        "scans_30d": "Scans, last 30 days",
+        "infection_flagged": "Infection flagged",
+        "ischaemia_flagged": "Ischaemia flagged",
+        "mode_split": "App mode split",
+        "mode_online": "Online mode",
+        "mode_offline": "Offline mode",
+        "models_downloaded": "Models downloaded",
+        "sync_batches": "Sync batches, 24h",
+        "sync_failed": "Failed or partial, 24h"
+    },
+    "devices": {
+        "title": "Devices",
+        "subtitle": "Every install that has registered with the API.",
+        "device": "Device",
+        "owner": "Owner",
+        "platform": "Platform",
+        "mode": "Mode",
+        "app_version": "App version",
+        "models": "Models",
+        "last_seen": "Last seen",
+        "downloaded": "Downloaded",
+        "not_downloaded": "Not downloaded",
+        "empty": "No devices have registered yet."
+    },
+    "patients": {
+        "title": "Patients",
+        "subtitle": "People enrolled in DiaFootCare.",
+        "empty": "No patients yet."
+    },
+    "scans": {
+        "title": "Scan Feed",
+        "subtitle": "Wound scans as they arrive from devices, newest first.",
+        "captured": "Captured",
+        "patient": "Patient",
+        "size": "Size",
+        "area": "Area",
+        "risk": "Risk",
+        "source": "Source",
+        "empty": "No scans have synced yet.",
+        "no_wound": "No wound detected"
+    },
+    "risk": {
+        "normal": "Normal",
+        "infection": "Infection",
+        "ischaemia": "Impaired blood flow",
+        "high": "High risk",
+        "unknown": "Not assessed"
+    },
+    "common": {
+        "loading": "Loading",
+        "retry": "Retry",
+        "error": "Something went wrong loading this page.",
+        "never": "Never",
+        "of": "of",
+        "page": "Page"
+    },
+    "notfound": {
+        "title": "Page not found",
+        "body": "That page doesn't exist.",
+        "back": "Back to dashboard"
+    }
+}
