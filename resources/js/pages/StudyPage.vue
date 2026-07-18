@@ -5,6 +5,7 @@ import { useApiResource } from '@/composables/useApiResource';
 import PageHeader from '@/components/PageHeader.vue';
 import StatCard from '@/components/StatCard.vue';
 import TableSkeleton from '@/components/TableSkeleton.vue';
+import BandBarChart from '@/components/charts/BandBarChart.vue';
 
 const { t } = useI18n();
 const { data, loading, error, load } = useApiResource('/study/summary');
@@ -59,22 +60,10 @@ const totalBanded = computed(() =>
                          stops the number being read as a percentage score. -->
                     <p class="mt-1 text-xs text-slate-600 dark:text-slate-400">{{ t('study.benchmark_note') }}</p>
 
-                    <ul class="mt-4 space-y-3">
-                        <li v-for="b in bandOrder" :key="b" class="flex items-center gap-3">
-                            <span class="w-20 shrink-0 text-sm text-slate-700 dark:text-slate-300">
-                                {{ t(`study.band_${b}`) }}
-                            </span>
-                            <div class="h-2 flex-1 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
-                                <div
-                                    class="h-full rounded-full bg-cyan-600 transition-[width] duration-500"
-                                    :style="{ width: totalBanded ? `${((s.sus?.bands?.[b] ?? 0) / totalBanded) * 100}%` : '0%' }"
-                                />
-                            </div>
-                            <span class="w-8 shrink-0 text-end text-sm tabular-nums text-slate-700 dark:text-slate-300">
-                                {{ s.sus?.bands?.[b] ?? 0 }}
-                            </span>
-                        </li>
-                    </ul>
+                    <BandBarChart
+                        class="mt-4"
+                        :bands="bandOrder.map((b) => ({ key: b, label: t(`study.band_${b}`), value: s.sus?.bands?.[b] ?? 0 }))"
+                    />
                 </div>
 
                 <!-- Satisfaction -->

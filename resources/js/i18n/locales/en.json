@@ -173,7 +173,8 @@
         "no_upcoming": "No upcoming appointments.",
         "consent": "Consent history",
         "covers_prior": "covers earlier responses",
-        "no_consent": "No consent recorded yet."
+        "no_consent": "No consent recorded yet.",
+        "below_target": "Below target"
     },
     "study": {
         "title": "Study",
@@ -200,5 +201,11 @@
         "consent_note": "Participants split across declarations. Responses under different versions are not directly comparable.",
         "participants": "participants",
         "no_consent": "No consent records yet."
+    },
+    "theme": {
+        "light": "Light",
+        "dark": "Dark",
+        "system": "System",
+        "toggle": "Theme: {mode}. Click to change."
     }
 }

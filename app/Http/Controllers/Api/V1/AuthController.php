@@ -86,6 +86,52 @@ class AuthController extends Controller
         ]);
     }
 
+    /**
+     * Change password for the signed-in user.
+     *
+     * All other tokens are revoked afterwards: if the password was changed
+     * because it may have been compromised, leaving other sessions alive
+     * defeats the point.
+     */
+    public function updatePassword(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            // Required deliberately: without it, anyone holding an unlocked
+            // phone could lock the real owner out of their clinical record.
+            'current_password' => ['required', 'string'],
+            'password' => ['required', 'confirmed', Password::defaults()],
+        ]);
+
+        $user = $request->user();
+
+        if (! Hash::check($data['current_password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'current_password' => [__('The current password is incorrect.')],
+            ]);
+        }
+
+        $currentToken = $user->currentAccessToken();
+
+        $user->forceFill(['password' => $data['password']])->save();
+
+        $user->tokens()->where('id', '!=', $currentToken->id)->delete();
+
+        return response()->json(['message' => 'Password updated.']);
+    }
+
+    public function updateProfile(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['nullable', 'string', 'max:255'],
+            'locale' => ['nullable', 'string', 'in:en,ar'],
+        ]);
+
+        $user = $request->user();
+        $user->fill(array_filter($data, fn ($v) => $v !== null))->save();
+
+        return response()->json(['user' => $this->userPayload($user->load('patient'))]);
+    }
+
     private function tokenName(Request $request): string
     {
         return substr($request->input('device_name', $request->userAgent() ?? 'api'), 0, 255);

@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/stores/auth';
 import { SUPPORTED_LOCALES, applyLocale } from '@/i18n';
+import ThemeToggle from '@/components/ThemeToggle.vue';
 
 const { t, locale } = useI18n();
 const auth = useAuthStore();
@@ -122,6 +123,7 @@ async function signOut() {
                 />
 
                 <div class="ms-auto flex items-center gap-3">
+                    <ThemeToggle />
                     <span class="hidden text-sm text-slate-600 dark:text-slate-300 sm:block">
                         {{ auth.user?.name }}
                     </span>

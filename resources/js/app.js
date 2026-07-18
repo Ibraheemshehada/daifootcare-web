@@ -9,6 +9,7 @@ import App from '@/App.vue';
 import router from '@/router';
 import i18n from '@/i18n';
 import { useAuthStore } from '@/stores/auth';
+import { applyTheme } from '@/composables/useTheme';
 
 const app = createApp(App);
 const pinia = createPinia();
@@ -20,6 +21,9 @@ app.use(ui);
 
 // Restore the session before the first route resolves, so a reload on a guarded
 // page doesn't bounce the user to /login while the token is still being read.
+// Applied before mount so a dark-mode viewer never sees a light flash.
+applyTheme();
+
 const auth = useAuthStore();
 auth.restore();
 

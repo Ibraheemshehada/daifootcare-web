@@ -6,7 +6,8 @@ import { useApiResource } from '@/composables/useApiResource';
 import PageHeader from '@/components/PageHeader.vue';
 import StatCard from '@/components/StatCard.vue';
 import TableSkeleton from '@/components/TableSkeleton.vue';
-import Sparkline from '@/components/Sparkline.vue';
+import LineChart from '@/components/charts/LineChart.vue';
+import Meter from '@/components/charts/Meter.vue';
 
 const { t, d } = useI18n();
 const route = useRoute();
@@ -21,17 +22,28 @@ const pct = (v) => (v === null || v === undefined ? null : `${v}%`);
 const cards = computed(() => [
     { label: t('patient.scans'), value: summary.value.scans_total, icon: 'i-lucide-scan-line', accent: 'cyan' },
     { label: t('patient.glucose_avg'), value: summary.value.glucose_avg_7d, icon: 'i-lucide-droplet', accent: 'amber' },
-    { label: t('patient.selfcare_adherence'), value: pct(summary.value.self_care_adherence_30d), icon: 'i-lucide-list-checks', accent: 'emerald' },
-    { label: t('patient.medication_adherence'), value: pct(summary.value.medication_adherence_30d), icon: 'i-lucide-pill', accent: 'emerald' },
     { label: t('patient.sus_latest'), value: summary.value.sus_latest, icon: 'i-lucide-clipboard-check', accent: 'slate' },
 ]);
 
 /** Newest-first from the API; a chart reads left-to-right oldest-first. */
 const glucoseSeries = computed(() =>
-    [...(record.value.glucose ?? [])].reverse().map((g) => g.value_mgdl)
+    [...(record.value.glucose ?? [])]
+        .reverse()
+        .map((g) => ({ x: g.measured_at, y: g.value_mgdl }))
 );
+/**
+ * Wound area trend.
+ *
+ * Scans with no measurement are excluded — including the 0x0 case, which the
+ * model returns when it finds **no wound in the photo**, not when the wound has
+ * closed. Plotting those as a real zero would draw a line to the floor and read
+ * as "fully healed", which is the opposite of what a retake-needed scan means.
+ */
 const areaSeries = computed(() =>
-    [...(record.value.wound_scans ?? [])].reverse().map((s) => s.area_cm2 ?? 0)
+    [...(record.value.wound_scans ?? [])]
+        .reverse()
+        .filter((s) => Number.isFinite(s.area_cm2) && s.area_cm2 > 0)
+        .map((s) => ({ x: s.captured_at, y: s.area_cm2 }))
 );
 
 const riskColor = (badge) =>
@@ -70,18 +82,48 @@ const upcoming = computed(() =>
         <TableSkeleton v-if="loading" class="mt-8" :columns="4" />
 
         <template v-else>
+            <!-- Adherence: a ratio against a target is a meter, not a chart. -->
+            <div class="mt-8 grid gap-5 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2 dark:border-slate-800 dark:bg-slate-900">
+                <Meter
+                    :value="summary.self_care_adherence_30d"
+                    :label="t('patient.selfcare_adherence')"
+                    :threshold="70"
+                    :threshold-label="t('patient.below_target')"
+                />
+                <Meter
+                    :value="summary.medication_adherence_30d"
+                    :label="t('patient.medication_adherence')"
+                    :threshold="80"
+                    :threshold-label="t('patient.below_target')"
+                />
+            </div>
+
             <!-- Trends -->
-            <div class="mt-8 grid gap-5 lg:grid-cols-2">
+            <div class="mt-5 grid gap-5 lg:grid-cols-2">
                 <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h2 class="text-sm font-semibold text-slate-900 dark:text-white">{{ t('patient.wound_area_trend') }}</h2>
                     <p class="mt-1 text-xs text-slate-600 dark:text-slate-400">{{ t('patient.wound_area_hint') }}</p>
-                    <Sparkline :values="areaSeries" class="mt-4" stroke="var(--color-risk-infection)" />
+                    <LineChart
+                        class="mt-3"
+                        :points="areaSeries"
+                        unit="cm²"
+                        better="lower"
+                        :label="t('patient.wound_area_trend')"
+                    />
                 </div>
 
                 <div class="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
                     <h2 class="text-sm font-semibold text-slate-900 dark:text-white">{{ t('patient.glucose_trend') }}</h2>
                     <p class="mt-1 text-xs text-slate-600 dark:text-slate-400">{{ t('patient.glucose_hint') }}</p>
-                    <Sparkline :values="glucoseSeries" class="mt-4" stroke="var(--color-state-pending)" />
+                    <!-- The shaded band is the common 70–130 mg/dL target range:
+                         a reading only means something relative to it. -->
+                    <LineChart
+                        class="mt-3"
+                        :points="glucoseSeries"
+                        unit="mg/dL"
+                        :band="{ from: 70, to: 130 }"
+                        :label="t('patient.glucose_trend')"
+                    />
                 </div>
             </div>
 

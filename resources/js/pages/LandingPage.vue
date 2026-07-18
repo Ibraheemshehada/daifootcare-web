@@ -3,6 +3,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { motion } from 'motion-v';
 import { SUPPORTED_LOCALES, applyLocale } from '@/i18n';
+import ThemeToggle from '@/components/ThemeToggle.vue';
 import appHomeUrl from '../../images/app-home.webp';
 import appHistoryUrl from '../../images/app-history.webp';
 import appSelfCareUrl from '../../images/app-selfcare.webp';
@@ -112,6 +113,7 @@ const accentClasses = {
                         {{ l.name }}
                     </button>
 
+                    <ThemeToggle />
                     <UButton
                         :to="{ name: 'login' }"
                         size="sm"

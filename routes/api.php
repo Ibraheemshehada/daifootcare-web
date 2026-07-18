@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\DeviceController;
 use App\Http\Controllers\Api\V1\GuestController;
 use App\Http\Controllers\Api\V1\HealthRecordSyncController;
+use App\Http\Controllers\Api\V1\PasswordResetController;
 use App\Http\Controllers\Api\V1\PatientController;
 use App\Http\Controllers\Api\V1\PatientRecordController;
 use App\Http\Controllers\Api\V1\StudyController;
@@ -24,6 +25,10 @@ Route::prefix('v1')->group(function () {
         // Idempotent, so relaunching resumes the same guest rather than
         // fragmenting one participant across several anonymous records.
         Route::post('auth/guest', [GuestController::class, 'session']);
+
+        // OTP password reset (replaces the Firebase Cloud Function).
+        Route::post('auth/forgot-password', [PasswordResetController::class, 'request']);
+        Route::post('auth/reset-password', [PasswordResetController::class, 'reset']);
     });
 
     // --- Authenticated --------------------------------------------------
@@ -32,6 +37,8 @@ Route::prefix('v1')->group(function () {
         Route::get('auth/me', [AuthController::class, 'me']);
         // Upgrade an anonymous session in place, carrying its history over.
         Route::post('auth/claim', [GuestController::class, 'claim']);
+        Route::post('auth/password', [AuthController::class, 'updatePassword']);
+        Route::post('auth/profile', [AuthController::class, 'updateProfile']);
 
         Route::post('devices/register', [DeviceController::class, 'register']);
         Route::patch('devices/{uuid}/mode', [DeviceController::class, 'updateMode']);
