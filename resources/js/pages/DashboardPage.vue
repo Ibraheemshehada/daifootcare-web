@@ -12,6 +12,7 @@ const stats = computed(() => data.value ?? {});
 
 const cards = computed(() => [
     { label: t('dashboard.patients'), value: stats.value.patients, icon: 'i-lucide-users', accent: 'cyan' },
+    { label: t('dashboard.guests'), value: stats.value.participants?.guests, icon: 'i-lucide-user-round-search', accent: 'slate' },
     { label: t('dashboard.devices'), value: stats.value.devices?.total, icon: 'i-lucide-smartphone', accent: 'slate' },
     { label: t('dashboard.active_devices'), value: stats.value.devices?.active_7d, icon: 'i-lucide-wifi', accent: 'emerald' },
     { label: t('dashboard.scans_total'), value: stats.value.scans?.total, icon: 'i-lucide-scan-line', accent: 'cyan' },

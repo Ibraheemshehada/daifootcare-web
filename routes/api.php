@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\DeviceController;
+use App\Http\Controllers\Api\V1\GuestController;
 use App\Http\Controllers\Api\V1\HealthRecordSyncController;
 use App\Http\Controllers\Api\V1\PatientController;
 use App\Http\Controllers\Api\V1\PatientRecordController;
@@ -18,12 +19,19 @@ Route::prefix('v1')->group(function () {
     Route::middleware('throttle:6,1')->group(function () {
         Route::post('auth/register', [AuthController::class, 'register']);
         Route::post('auth/login', [AuthController::class, 'login']);
+
+        // Anonymous participation, keyed to the app-generated device_uuid.
+        // Idempotent, so relaunching resumes the same guest rather than
+        // fragmenting one participant across several anonymous records.
+        Route::post('auth/guest', [GuestController::class, 'session']);
     });
 
     // --- Authenticated --------------------------------------------------
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('auth/logout', [AuthController::class, 'logout']);
         Route::get('auth/me', [AuthController::class, 'me']);
+        // Upgrade an anonymous session in place, carrying its history over.
+        Route::post('auth/claim', [GuestController::class, 'claim']);
 
         Route::post('devices/register', [DeviceController::class, 'register']);
         Route::patch('devices/{uuid}/mode', [DeviceController::class, 'updateMode']);

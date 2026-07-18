@@ -61,9 +61,25 @@ function formatDate(value) {
                             >
                                 {{ patient.user?.name ?? '—' }}
                             </RouterLink>
+                            <!-- A clinician must be able to tell at a glance that a
+                                 record has no identified person behind it. -->
+                            <UBadge
+                                v-if="patient.user?.is_guest"
+                                color="neutral" variant="subtle" size="xs" class="ms-2"
+                                :label="t('patients.guest')"
+                            />
+                            <UBadge
+                                v-else-if="patient.user?.claimed_at"
+                                color="success" variant="subtle" size="xs" class="ms-2"
+                                :label="t('patients.claimed')"
+                            />
                         </td>
                         <td class="px-4 py-3 text-slate-600 dark:text-slate-300">
-                            {{ patient.user?.email ?? '—' }}
+                            <template v-if="patient.user?.email">{{ patient.user.email }}</template>
+                            <code v-else-if="patient.user?.guest_device_uuid" class="text-xs">
+                                {{ patient.user.guest_device_uuid.slice(0, 8) }}…
+                            </code>
+                            <template v-else>—</template>
                         </td>
                         <td class="px-4 py-3 tabular-nums text-slate-600 dark:text-slate-300">
                             {{ patient.wound_scans_count ?? 0 }}

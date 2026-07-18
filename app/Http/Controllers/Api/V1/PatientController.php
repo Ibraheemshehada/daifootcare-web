@@ -12,7 +12,7 @@ class PatientController extends Controller
     public function index(Request $request): JsonResponse
     {
         $patients = Patient::query()
-            ->with('user:id,name,email,role')
+            ->with('user:id,name,email,role,is_guest,guest_device_uuid,claimed_at')
             ->withCount('woundScans')
             // Newest scan first, so the list mirrors clinical attention.
             ->withMax('woundScans as last_scan_at', 'captured_at')

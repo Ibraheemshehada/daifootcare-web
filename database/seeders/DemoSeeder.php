@@ -10,6 +10,13 @@ class DemoSeeder extends Seeder
 {
     public function run(): void
     {
+        $admin = User::firstOrCreate(
+            ['email' => 'admin@daifootcare.test'],
+            ['name' => 'Study Admin', 'password' => 'password', 'locale' => 'en']
+        );
+        // role is not mass-assignable by design, so it is set explicitly here.
+        $admin->forceFill(['role' => User::ROLE_ADMIN])->save();
+
         $doctor = User::firstOrCreate(
             ['email' => 'doctor@daifootcare.test'],
             ['name' => 'Dr. Demo', 'password' => 'password', 'locale' => 'en']
@@ -27,6 +34,7 @@ class DemoSeeder extends Seeder
             ['diabetes_type' => 'type_2', 'gender' => 'male']
         );
 
-        $this->command->info('Seeded doctor@daifootcare.test / patient@daifootcare.test (password: password)');
+        $this->command->info('Seeded admin@ / doctor@ / patient@daifootcare.test — password: password');
+        $this->command->warn('Development credentials only. Never seed these in production.');
     }
 }

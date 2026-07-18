@@ -55,7 +55,21 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_guest' => 'boolean',
+            'claimed_at' => 'datetime',
         ];
+    }
+
+    /**
+     * An anonymous participant identified only by their device.
+     *
+     * Guests are real users for every downstream purpose — they own a patient
+     * record and sync like anyone else — they simply have no email and no
+     * personal details attached.
+     */
+    public function isGuest(): bool
+    {
+        return (bool) $this->is_guest;
     }
 
     public function patient(): HasOne

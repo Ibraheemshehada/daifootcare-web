@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Device;
 use App\Models\Patient;
+use App\Models\User;
 use App\Models\SyncLog;
 use App\Models\WoundScan;
 use Illuminate\Http\JsonResponse;
@@ -16,6 +17,14 @@ class DashboardController extends Controller
     {
         return response()->json([
             'patients' => Patient::count(),
+            'participants' => [
+                // Guests are participants too; the study needs to see the split
+                // rather than have anonymous activity silently folded in.
+                'guests' => User::where('is_guest', true)->count(),
+                'registered' => User::where('is_guest', false)
+                    ->where('role', User::ROLE_PATIENT)->count(),
+                'claimed' => User::whereNotNull('claimed_at')->count(),
+            ],
             'devices' => [
                 'total' => Device::count(),
                 'online_mode' => Device::where('mode', Device::MODE_ONLINE)->count(),

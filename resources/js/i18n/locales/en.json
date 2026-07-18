@@ -36,7 +36,8 @@
         "mode_offline": "Offline mode",
         "models_downloaded": "Models downloaded",
         "sync_batches": "Sync batches, 24h",
-        "sync_failed": "Failed or partial, 24h"
+        "sync_failed": "Failed or partial, 24h",
+        "guests": "Guest participants"
     },
     "devices": {
         "title": "Devices",
@@ -55,7 +56,9 @@
     "patients": {
         "title": "Patients",
         "subtitle": "People enrolled in DiaFootCare.",
-        "empty": "No patients yet."
+        "empty": "No patients yet.",
+        "guest": "Guest",
+        "claimed": "Was guest"
     },
     "scans": {
         "title": "Scan Feed",
