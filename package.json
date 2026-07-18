@@ -19,6 +19,9 @@
         "vite": "^7.0.7"
     },
     "dependencies": {
+        "@fontsource/figtree": "^5.2.10",
+        "@fontsource/noto-sans": "^5.2.10",
+        "@fontsource/noto-sans-arabic": "^5.2.10",
         "@nuxt/ui": "^4.10.0",
         "motion-v": "^2.3.0",
         "pinia": "^4.0.2",

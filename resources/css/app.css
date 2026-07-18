@@ -1,6 +1,27 @@
 @import 'tailwindcss';
 @import '@nuxt/ui';
 
+/*
+ * Self-hosted fonts. Deliberately NOT the Google Fonts CDN: this dashboard is
+ * used by clinicians looking at patient records, and a CDN link leaks their IP
+ * and referrer to a third party on every page load. Self-hosting also means the
+ * UI renders identically on a hospital network that blocks external CDNs.
+ *
+ * Figtree = display/UI. Noto Sans = body. Noto Sans Arabic is the reason this
+ * matters most: the previous stack had no Arabic-capable font at all, so the
+ * entire Arabic UI fell back to whatever the OS happened to ship.
+ */
+@import '@fontsource/figtree/400.css';
+@import '@fontsource/figtree/500.css';
+@import '@fontsource/figtree/600.css';
+@import '@fontsource/figtree/700.css';
+@import '@fontsource/noto-sans/400.css';
+@import '@fontsource/noto-sans/500.css';
+@import '@fontsource/noto-sans/700.css';
+@import '@fontsource/noto-sans-arabic/400.css';
+@import '@fontsource/noto-sans-arabic/500.css';
+@import '@fontsource/noto-sans-arabic/700.css';
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
@@ -10,29 +31,81 @@
 /*
  * Design tokens — defined once here, referenced everywhere.
  *
- * Clinical UI constraint: this dashboard shows infection and ischaemia risk, so
- * status colour is load-bearing information, not decoration. Every semantic
- * colour below is chosen for >= 4.5:1 contrast on its surface, matching the
- * standard the mobile app already holds itself to. Colour is never the only
- * signal — risk is always accompanied by a text label.
+ * Palette and type follow the "Accessible & Ethical" system recommended for
+ * healthcare products: calm cyan with a health-green accent, high contrast,
+ * no neon and no decorative gradients. Status colour is load-bearing clinical
+ * information here, so every semantic colour is paired with a text label in the
+ * UI and never used as the sole signal.
  */
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Figtree', 'Noto Sans', 'Noto Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Noto Sans', 'Noto Sans Arabic', ui-sans-serif, system-ui, sans-serif;
+
+    /* Brand */
+    --color-brand: #0891b2;
+    --color-brand-fg: #ffffff;
+    --color-brand-soft: #ecfeff;
+    --color-brand-border: #a5f3fc;
+    --color-brand-ink: #164e63;
+    --color-accent: #059669;
 
     /* Risk semantics — shared vocabulary with the Flutter app's risk_badge. */
-    --color-risk-normal: oklch(0.55 0.13 155);
-    --color-risk-infection: oklch(0.52 0.20 25);
-    --color-risk-ischaemia: oklch(0.52 0.15 65);
-    --color-risk-high: oklch(0.46 0.21 15);
+    --color-risk-normal: #047857;
+    --color-risk-infection: #b91c1c;
+    --color-risk-ischaemia: #b45309;
+    --color-risk-high: #991b1b;
 
     /* Sync / device state. */
-    --color-state-synced: oklch(0.55 0.13 155);
-    --color-state-pending: oklch(0.58 0.14 85);
-    --color-state-stale: oklch(0.55 0.02 260);
+    --color-state-synced: #047857;
+    --color-state-pending: #b45309;
+    --color-state-stale: #52525b;
 }
 
-/* RTL: the layout is built on logical properties, so direction mostly handles
+/*
+ * Primary surface colour, darkened deliberately.
+ *
+ * Nuxt UI's default solid button paints white text on the primary-500 step.
+ * With cyan that is 2.37:1 — a fail on the most prominent CTA on the site. Even
+ * the recommended #0891B2 (cyan-600) only reaches ~3.9:1 against white, still
+ * short of 4.5:1 for button-sized text. cyan-700 is the first step that clears
+ * it, so the brand colour is pinned there rather than left at the default.
+ */
+:root {
+    --ui-primary: var(--color-cyan-700);
+}
+
+.dark {
+    /* On dark surfaces the relationship inverts: a lighter cyan carries the
+       dark text Nuxt UI pairs with it on inverted backgrounds. */
+    --ui-primary: var(--color-cyan-400);
+}
+
+/* Body copy uses Noto Sans; headings inherit Figtree from --font-sans. */
+body {
+    font-family: var(--font-body);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-sans);
+}
+
+/*
+ * Keyboard focus. The skill flags "removing focus rings" as a critical
+ * anti-pattern, so rather than trusting each component, every focusable element
+ * gets a visible ring. :focus-visible keeps it off for mouse users.
+ */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+    outline: 3px solid var(--color-brand);
+    outline-offset: 2px;
+    border-radius: 0.375rem;
+}
+
+/* Anything that behaves like a control should say so on hover. */
+:where(a[href], button:not(:disabled), [role='button']:not([aria-disabled='true'])) {
+    cursor: pointer;
+}
+
+/* RTL: layout is built on logical properties, so direction mostly handles
    itself. Only genuinely directional glyphs need an explicit flip. */
 [dir='rtl'] .rtl-flip {
     transform: scaleX(-1);
@@ -40,4 +113,22 @@
 
 html {
     scroll-behavior: smooth;
+}
+
+/*
+ * Honour reduced motion globally rather than per-component. motion-v animations
+ * still run their state changes, they simply stop moving.
+ */
+@media (prefers-reduced-motion: reduce) {
+    html {
+        scroll-behavior: auto;
+    }
+
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
 }

@@ -42,14 +42,14 @@ async function signOut() {
             :class="sidebarOpen ? 'translate-x-0' : 'max-lg:ltr:-translate-x-full max-lg:rtl:translate-x-full'"
         >
             <div class="flex h-16 items-center gap-3 border-b border-slate-200 px-5 dark:border-slate-800">
-                <div class="flex size-9 items-center justify-center rounded-xl bg-sky-600 text-white">
+                <div class="flex size-9 items-center justify-center rounded-xl bg-cyan-700 text-white">
                     <UIcon name="i-lucide-footprints" class="size-5" />
                 </div>
                 <div class="min-w-0">
                     <p class="truncate text-sm font-semibold text-slate-900 dark:text-white">
                         {{ t('app.name') }}
                     </p>
-                    <p class="truncate text-xs text-slate-500 dark:text-slate-400">
+                    <p class="truncate text-xs text-slate-600 dark:text-slate-400">
                         {{ t('app.subtitle') }}
                     </p>
                 </div>
@@ -61,7 +61,7 @@ async function signOut() {
                     :key="link.name"
                     :to="{ name: link.name }"
                     class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white"
-                    active-class="bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300"
+                    active-class="bg-cyan-50 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-200"
                     @click="sidebarOpen = false"
                 >
                     <UIcon :name="link.icon" class="size-5 shrink-0" />

@@ -31,13 +31,13 @@ async function submit() {
     <div class="flex min-h-screen items-center justify-center bg-slate-50 p-4 dark:bg-slate-950">
         <div class="w-full max-w-sm">
             <div class="mb-8 text-center">
-                <div class="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-sky-600 text-white">
+                <div class="mx-auto mb-4 flex size-14 items-center justify-center rounded-2xl bg-cyan-700 text-white">
                     <UIcon name="i-lucide-footprints" class="size-7" />
                 </div>
                 <h1 class="text-xl font-semibold text-slate-900 dark:text-white">
                     {{ t('app.name') }}
                 </h1>
-                <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">
+                <p class="mt-1 text-sm text-slate-600 dark:text-slate-400">
                     {{ t('login.intro') }}
                 </p>
             </div>

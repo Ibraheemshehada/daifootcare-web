@@ -64,7 +64,7 @@ function sizeLabel(scan) {
         >
             <table class="w-full min-w-[52rem] text-sm">
                 <thead class="border-b border-slate-200 dark:border-slate-800">
-                    <tr class="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                    <tr class="text-xs uppercase tracking-wide text-slate-600 dark:text-slate-400">
                         <th class="px-4 py-3 text-start font-medium">{{ t('scans.captured') }}</th>
                         <th class="px-4 py-3 text-start font-medium">{{ t('scans.patient') }}</th>
                         <th class="px-4 py-3 text-start font-medium">{{ t('scans.size') }}</th>
@@ -115,7 +115,7 @@ function sizeLabel(scan) {
             class="rounded-xl border border-dashed border-slate-300 p-12 text-center dark:border-slate-700"
         >
             <UIcon name="i-lucide-activity" class="mx-auto size-8 text-slate-400" />
-            <p class="mt-3 text-sm text-slate-500 dark:text-slate-400">{{ t('scans.empty') }}</p>
+            <p class="mt-3 text-sm text-slate-600 dark:text-slate-400">{{ t('scans.empty') }}</p>
         </div>
     </div>
 </template>

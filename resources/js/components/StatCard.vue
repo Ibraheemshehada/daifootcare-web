@@ -11,7 +11,7 @@ defineProps({
 });
 
 const accents = {
-    sky: 'bg-sky-50 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
+    cyan: 'bg-cyan-50 text-cyan-800 dark:bg-cyan-950 dark:text-cyan-200',
     emerald: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
     amber: 'bg-amber-50 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
     rose: 'bg-rose-50 text-rose-700 dark:bg-rose-950 dark:text-rose-300',
@@ -33,7 +33,7 @@ const accents = {
                     partial, 24h" truncates to "Failed or p…", which in a clinical
                     dashboard is worse than a taller card.
                 -->
-                <p class="text-sm font-medium text-balance text-slate-500 dark:text-slate-400">
+                <p class="text-sm font-medium text-balance text-slate-600 dark:text-slate-400">
                     {{ label }}
                 </p>
 
@@ -43,7 +43,7 @@ const accents = {
                 </p>
             </div>
 
-            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg" :class="accents[accent]">
+            <div class="flex size-10 shrink-0 items-center justify-center rounded-lg" :class="accents[accent] ?? accents.slate">
                 <UIcon :name="icon" class="size-5" />
             </div>
         </div>

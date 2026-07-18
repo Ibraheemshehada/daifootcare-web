@@ -19,8 +19,15 @@ export default defineConfig({
         ui({
             ui: {
                 colors: {
-                    primary: 'sky',
+                    // Cyan + emerald is the healthcare pairing from the
+                    // "Accessible & Ethical" system: calm, high-contrast, and
+                    // distinct from the reds/ambers reserved for clinical risk.
+                    primary: 'cyan',
+                    secondary: 'emerald',
                     neutral: 'slate',
+                    error: 'red',
+                    warning: 'amber',
+                    success: 'emerald',
                 },
             },
         }),

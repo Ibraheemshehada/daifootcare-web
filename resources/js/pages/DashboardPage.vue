@@ -11,10 +11,10 @@ const { data, loading, error, load } = useApiResource('/dashboard/stats');
 const stats = computed(() => data.value ?? {});
 
 const cards = computed(() => [
-    { label: t('dashboard.patients'), value: stats.value.patients, icon: 'i-lucide-users', accent: 'sky' },
+    { label: t('dashboard.patients'), value: stats.value.patients, icon: 'i-lucide-users', accent: 'cyan' },
     { label: t('dashboard.devices'), value: stats.value.devices?.total, icon: 'i-lucide-smartphone', accent: 'slate' },
     { label: t('dashboard.active_devices'), value: stats.value.devices?.active_7d, icon: 'i-lucide-wifi', accent: 'emerald' },
-    { label: t('dashboard.scans_total'), value: stats.value.scans?.total, icon: 'i-lucide-scan-line', accent: 'sky' },
+    { label: t('dashboard.scans_total'), value: stats.value.scans?.total, icon: 'i-lucide-scan-line', accent: 'cyan' },
     { label: t('dashboard.scans_7d'), value: stats.value.scans?.last_7d, icon: 'i-lucide-calendar-days', accent: 'slate' },
     { label: t('dashboard.scans_30d'), value: stats.value.scans?.last_30d, icon: 'i-lucide-calendar-range', accent: 'slate' },
     { label: t('dashboard.infection_flagged'), value: stats.value.scans?.infection_flagged, icon: 'i-lucide-alert-triangle', accent: 'rose' },
@@ -22,7 +22,7 @@ const cards = computed(() => [
 ]);
 
 const modeCards = computed(() => [
-    { label: t('dashboard.mode_online'), value: stats.value.devices?.online_mode, icon: 'i-lucide-cloud', accent: 'sky' },
+    { label: t('dashboard.mode_online'), value: stats.value.devices?.online_mode, icon: 'i-lucide-cloud', accent: 'cyan' },
     { label: t('dashboard.mode_offline'), value: stats.value.devices?.offline_mode, icon: 'i-lucide-cloud-off', accent: 'slate' },
     { label: t('dashboard.models_downloaded'), value: stats.value.devices?.models_downloaded, icon: 'i-lucide-hard-drive-download', accent: 'emerald' },
     { label: t('dashboard.sync_batches'), value: stats.value.sync?.batches_24h, icon: 'i-lucide-refresh-cw', accent: 'slate' },

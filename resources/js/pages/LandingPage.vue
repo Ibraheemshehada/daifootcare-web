@@ -31,16 +31,16 @@ const steps = [
 ];
 
 const features = [
-    { icon: 'i-lucide-scan-line', key: 'segmentation', accent: 'sky' },
+    { icon: 'i-lucide-scan-line', key: 'segmentation', accent: 'cyan' },
     { icon: 'i-lucide-layers', key: 'tissue', accent: 'violet' },
     { icon: 'i-lucide-shield-alert', key: 'risk', accent: 'rose' },
     { icon: 'i-lucide-droplet', key: 'glucose', accent: 'amber' },
     { icon: 'i-lucide-pill', key: 'medication', accent: 'emerald' },
-    { icon: 'i-lucide-accessibility', key: 'accessibility', accent: 'sky' },
+    { icon: 'i-lucide-accessibility', key: 'accessibility', accent: 'cyan' },
 ];
 
 const accentClasses = {
-    sky: 'bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300',
+    cyan: 'bg-cyan-50 text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-200',
     violet: 'bg-violet-50 text-violet-700 dark:bg-violet-950/60 dark:text-violet-300',
     rose: 'bg-rose-50 text-rose-700 dark:bg-rose-950/60 dark:text-rose-300',
     amber: 'bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300',
@@ -61,7 +61,7 @@ const accentClasses = {
         >
             <nav class="mx-auto flex h-16 max-w-6xl items-center gap-4 px-5">
                 <a href="#top" class="flex items-center gap-2.5">
-                    <span class="flex size-9 items-center justify-center rounded-xl bg-sky-600 text-white">
+                    <span class="flex size-9 items-center justify-center rounded-xl bg-cyan-700 text-white">
                         <UIcon name="i-lucide-footprints" class="size-5" />
                     </span>
                     <span class="text-base font-semibold tracking-tight text-slate-900 dark:text-white">
@@ -101,7 +101,7 @@ const accentClasses = {
             <!-- Decorative only: hidden from assistive tech. -->
             <div aria-hidden="true" class="pointer-events-none absolute inset-0 -z-10">
                 <div
-                    class="absolute start-1/2 top-[-12rem] size-[36rem] -translate-x-1/2 rounded-full bg-sky-200/40 blur-3xl dark:bg-sky-900/20"
+                    class="absolute start-1/2 top-[-12rem] size-[36rem] -translate-x-1/2 rounded-full bg-cyan-200/40 blur-3xl dark:bg-cyan-900/20"
                 />
             </div>
 
@@ -110,7 +110,7 @@ const accentClasses = {
                     <span
                         class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3.5 py-1.5 text-xs font-medium text-slate-600 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
                     >
-                        <UIcon name="i-lucide-cpu" class="size-3.5 text-sky-600" />
+                        <UIcon name="i-lucide-cpu" class="size-3.5 text-cyan-700 dark:text-cyan-400" />
                         {{ t('landing.badge') }}
                     </span>
                 </motion.div>
@@ -124,7 +124,7 @@ const accentClasses = {
 
                 <motion.p
                     v-bind="rise(0.16)"
-                    class="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-slate-600 dark:text-slate-400"
+                    class="mx-auto mt-6 max-w-2xl text-pretty text-lg leading-relaxed text-slate-700 dark:text-slate-300"
                 >
                     {{ t('landing.hero_body') }}
                 </motion.p>
@@ -143,7 +143,7 @@ const accentClasses = {
                     />
                 </motion.div>
 
-                <motion.p v-bind="rise(0.32)" class="mt-6 text-sm text-slate-500 dark:text-slate-500">
+                <motion.p v-bind="rise(0.32)" class="mt-6 text-sm text-slate-600 dark:text-slate-400">
                     {{ t('landing.hero_note') }}
                 </motion.p>
             </div>
@@ -156,7 +156,7 @@ const accentClasses = {
                     <h2 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
                         {{ t('landing.modes_title') }}
                     </h2>
-                    <p class="mt-4 text-pretty text-slate-600 dark:text-slate-400">
+                    <p class="mt-4 text-pretty text-slate-700 dark:text-slate-300">
                         {{ t('landing.modes_body') }}
                     </p>
                 </motion.div>
@@ -166,13 +166,13 @@ const accentClasses = {
                         v-bind="rise(0.06)"
                         class="rounded-2xl border border-slate-200 bg-white p-7 dark:border-slate-800 dark:bg-slate-900"
                     >
-                        <span class="flex size-11 items-center justify-center rounded-xl bg-sky-50 text-sky-700 dark:bg-sky-950/60 dark:text-sky-300">
+                        <span class="flex size-11 items-center justify-center rounded-xl bg-cyan-50 text-cyan-800 dark:bg-cyan-950/60 dark:text-cyan-200">
                             <UIcon name="i-lucide-cloud" class="size-5" />
                         </span>
                         <h3 class="mt-5 text-lg font-semibold text-slate-900 dark:text-white">
                             {{ t('landing.mode_online_title') }}
                         </h3>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                        <p class="mt-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                             {{ t('landing.mode_online_body') }}
                         </p>
                     </motion.div>
@@ -187,7 +187,7 @@ const accentClasses = {
                         <h3 class="mt-5 text-lg font-semibold text-slate-900 dark:text-white">
                             {{ t('landing.mode_offline_title') }}
                         </h3>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                        <p class="mt-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                             {{ t('landing.mode_offline_body') }}
                         </p>
                     </motion.div>
@@ -217,13 +217,13 @@ const accentClasses = {
                         >
                             <UIcon :name="step.icon" class="size-5" />
                         </span>
-                        <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-sky-600 dark:text-sky-400">
+                        <p class="mt-4 text-xs font-semibold uppercase tracking-wider text-cyan-700 dark:text-cyan-300">
                             {{ t('landing.step') }} {{ i + 1 }}
                         </p>
                         <h3 class="mt-1 font-semibold text-slate-900 dark:text-white">
                             {{ t(`landing.step_${step.key}_title`) }}
                         </h3>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                        <p class="mt-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                             {{ t(`landing.step_${step.key}_body`) }}
                         </p>
                     </motion.li>
@@ -238,7 +238,7 @@ const accentClasses = {
                     <h2 class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white">
                         {{ t('landing.features_title') }}
                     </h2>
-                    <p class="mt-4 text-pretty text-slate-600 dark:text-slate-400">
+                    <p class="mt-4 text-pretty text-slate-700 dark:text-slate-300">
                         {{ t('landing.features_body') }}
                     </p>
                 </motion.div>
@@ -252,14 +252,14 @@ const accentClasses = {
                     >
                         <span
                             class="flex size-10 items-center justify-center rounded-xl"
-                            :class="accentClasses[f.accent]"
+                            :class="accentClasses[f.accent] ?? accentClasses.cyan"
                         >
                             <UIcon :name="f.icon" class="size-5" />
                         </span>
                         <h3 class="mt-4 font-semibold text-slate-900 dark:text-white">
                             {{ t(`landing.feature_${f.key}_title`) }}
                         </h3>
-                        <p class="mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-400">
+                        <p class="mt-2 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
                             {{ t(`landing.feature_${f.key}_body`) }}
                         </p>
                     </motion.div>
@@ -286,7 +286,7 @@ const accentClasses = {
                     rewritten for exactly that reason, and marketing copy that contradicts
                     the consent text would undo that work.
                 -->
-                <p class="mt-3 max-w-2xl text-pretty leading-relaxed text-slate-600 dark:text-slate-400">
+                <p class="mt-3 max-w-2xl text-pretty leading-relaxed text-slate-700 dark:text-slate-300">
                     {{ t('landing.privacy_body') }}
                 </p>
                 <ul class="mt-6 grid gap-3 sm:grid-cols-2">
