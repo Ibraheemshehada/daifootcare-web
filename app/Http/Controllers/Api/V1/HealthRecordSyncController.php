@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\ConsentRecord;
 use App\Models\Device;
+use App\Models\EngagementDaily;
 use App\Models\EngagementEvent;
 use App\Models\GlucoseReading;
 use App\Models\Medication;
@@ -195,6 +196,25 @@ class HealthRecordSyncController extends Controller
                     'occurred_at' => $r['occurred_at'],
                 ],
             ],
+            // Daily rollups of the high-volume events. Counts are absolute, so
+            // a day re-sent as it grows overwrites rather than accumulates.
+            'engagement-daily' => [
+                'model' => EngagementDaily::class,
+                'rules' => [
+                    'day' => ['required', 'date'],
+                    'name' => ['required', 'string', 'max:60'],
+                    'target' => ['nullable', 'string', 'max:120'],
+                    'event_count' => ['required', 'integer', 'min:0'],
+                    'total_value' => ['nullable', 'integer'],
+                ],
+                'map' => fn (array $r) => [
+                    'day' => $r['day'],
+                    'name' => $r['name'],
+                    'target' => $r['target'] ?? null,
+                    'event_count' => $r['event_count'],
+                    'total_value' => $r['total_value'] ?? null,
+                ],
+            ],
             'consents' => [
                 'model' => ConsentRecord::class,
                 'rules' => [
@@ -258,7 +278,7 @@ class HealthRecordSyncController extends Controller
         }
 
         $model = $config['model'];
-        $hasDeviceColumn = in_array($type, ['glucose', 'engagement'], true);
+        $hasDeviceColumn = in_array($type, ['glucose', 'engagement', 'engagement-daily'], true);
 
         $synced = [];
         $failed = [];
@@ -274,7 +294,7 @@ class HealthRecordSyncController extends Controller
 
                     // Engagement and consent rows are historical facts, not
                     // mutable state, so they carry no synced_at marker.
-                    if (! in_array($type, ['engagement', 'consents'], true)) {
+                    if (! in_array($type, ['engagement', 'engagement-daily', 'consents'], true)) {
                         $values['synced_at'] = now();
                     }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\ConsentRecord;
+use App\Models\EngagementDaily;
 use App\Models\EngagementEvent;
 use App\Models\SatisfactionEntry;
 use App\Models\SusResponse;
@@ -56,18 +57,27 @@ class StudyController extends Controller
                 'usefulness' => round(SatisfactionEntry::avg('usefulness') ?? 0, 2) ?: null,
                 'would_continue' => round(SatisfactionEntry::avg('would_continue') ?? 0, 2) ?: null,
             ],
+            // Screen-level activity arrives pre-aggregated per day; app_open,
+            // task and error events still arrive raw. Both are read here, so
+            // the figures are the same as before the rollup was introduced.
             'engagement' => [
-                'events_total' => EngagementEvent::count(),
+                'events_total' => (int) EngagementDaily::sum('event_count') + EngagementEvent::count(),
                 'app_opens' => EngagementEvent::where('name', 'app_open')->count(),
-                'active_participants_7d' => EngagementEvent::where('occurred_at', '>=', now()->subDays(7))
+                'active_participants_7d' => EngagementDaily::where('day', '>=', now()->subDays(7)->toDateString())
                     ->distinct('patient_id')->count('patient_id'),
-                'top_features' => EngagementEvent::where('name', 'feature_open')
-                    ->select('target', DB::raw('COUNT(*) as opens'))
+                'top_features' => EngagementDaily::where('name', 'feature_open')
+                    ->select('target', DB::raw('SUM(event_count) as opens'))
                     ->whereNotNull('target')
                     ->groupBy('target')
                     ->orderByDesc('opens')
                     ->limit(8)
                     ->get(),
+                // Mean seconds on a screen, from the summed dwell payload.
+                'mean_screen_seconds' => round(
+                    (float) (EngagementDaily::where('name', 'screen_close')->sum('total_value')
+                        / max(1, EngagementDaily::where('name', 'screen_close')->sum('event_count'))) / 1000,
+                    1
+                ) ?: null,
             ],
             // Which declaration participants are on. A cohort split across two
             // consent versions is a fact the study has to be able to see.
