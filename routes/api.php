@@ -57,8 +57,13 @@ Route::prefix('v1')->group(function () {
         // Everything else the app records: glucose, medications, medication-logs,
         // self-care, qol, satisfaction, appointments, sus, engagement, consents.
         // One route, one idempotent code path — see HealthRecordSyncController.
+        // 60/min proved too tight in practice: a device with a backlog of
+        // analytics events sends 50-row batches and rate-limited itself while
+        // draining legitimately. These routes are authenticated and per-user, so
+        // the limit is about protecting the server from a runaway client, not
+        // about abuse.
         Route::post('sync/{type}', [HealthRecordSyncController::class, 'sync'])
-            ->middleware('throttle:60,1');
+            ->middleware('throttle:240,1');
 
         // --- Clinician only ---------------------------------------------
         Route::middleware('clinician')->group(function () {
