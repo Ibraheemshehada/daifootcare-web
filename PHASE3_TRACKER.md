@@ -68,6 +68,51 @@ cannot drift. Scans synced before findings existed carry only a label and
 resolve through it; nothing is backfilled, because the probabilities were never
 recorded and cannot be recovered from a label.
 
+### Wound photographs ✅
+
+`POST /wound-scans/{local_uuid}/image` accepts the photograph; `GET
+/wound-scans/{scan}/image` streams it back. Keyed on `local_uuid` on the way in
+because the phone knows it at capture time and the server id only after a
+successful sync — and the upload has to survive being retried later, on another
+connection, after the app restarts.
+
+These are the most sensitive things the system holds. A wound photograph is
+identifiable on its own — skin, scars, tattoos, jewellery, sometimes a
+clinician's hands or a ward behind. So:
+
+- stored on a `private` disk, never under `public/`, never given a URL that
+  works without authentication
+- streamed through a controller so every read passes an authorisation check
+  rather than being guessable from a path
+- readable by clinicians and the owning patient, nobody else
+- `image_path` is hidden from API responses; clients get a `has_image` flag,
+  because a path handed to a client is eventually fetched directly
+- `Cache-Control: private, no-store` so a shared proxy never holds one
+
+The `private` disk is defined separately from `local` on purpose: changing the
+default disk must not be able to move patient images somewhere servable.
+
+Uploads are idempotent — a retry after a timeout replaces rather than duplicates.
+A `409` means the scan record has not synced yet, which is expected rather than
+an error, and the phone retries on a later pass.
+
+**The dashboard fetches images as blobs**, not with a plain `<img src>`: reads
+are authorised and the dashboard authenticates with a bearer token, which a bare
+`src` would not send. `WoundImage.vue` revokes its object URL on unmount so a
+patient's photograph is not left resident after the clinician navigates away.
+
+Verified: 401 unauthenticated on upload and read, 409 for an unsynced scan, 422
+for a non-image, byte-identical round trip, nothing under `public/`, and
+`image_path` absent from `/wound-scans`.
+
+**Consent.** The app moved to consent v3 before sending anything, because v2's
+"wound scans and measurements" did not clearly cover uploading the photograph
+itself. Every participant is re-prompted.
+
+**Open: retention.** Nothing deletes these. Honouring a withdrawal is a manual
+database operation today. A study holding identifiable images needs a stated
+retention period and a way to action a withdrawal without SQL.
+
 ---
 
 ## Parity with the phone

@@ -38,6 +38,21 @@ return [
             'report' => false,
         ],
 
+        /*
+         * Wound photographs and anything else that must never be reachable by
+         * URL. Named separately from 'local' so that changing the default disk
+         * cannot quietly move patient images somewhere servable — they are only
+         * ever streamed through WoundImageController, which authorises first.
+         */
+        'private' => [
+            'driver' => 'local',
+            'root' => storage_path('app/private'),
+            'serve' => false,
+            'visibility' => 'private',
+            'throw' => false,
+            'report' => false,
+        ],
+
         'public' => [
             'driver' => 'local',
             'root' => storage_path('app/public'),

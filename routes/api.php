@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\ExportController;
 use App\Http\Controllers\Api\V1\ModelController;
 use App\Http\Controllers\Api\V1\OperationsController;
 use App\Http\Controllers\Api\V1\AnalysisController;
+use App\Http\Controllers\Api\V1\WoundImageController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\DeviceController;
 use App\Http\Controllers\Api\V1\GuestController;
@@ -67,6 +68,14 @@ Route::prefix('v1')->group(function () {
             ->middleware('throttle:30,1');
 
         Route::get('wound-scans', [WoundScanSyncController::class, 'index']);
+
+        // Wound photographs. Uploaded separately from the scan record because
+        // the two travel at different sizes and can fail independently, and
+        // read back only through a controller that authorises each request —
+        // never as a static file.
+        Route::post('wound-scans/{localUuid}/image', [WoundImageController::class, 'store'])
+            ->middleware('throttle:30,1');
+        Route::get('wound-scans/{scan}/image', [WoundImageController::class, 'show']);
 
         // Everything else the app records: glucose, medications, medication-logs,
         // self-care, qol, satisfaction, appointments, sus, engagement, consents.
