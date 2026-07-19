@@ -19,7 +19,10 @@ class DeviceController extends Controller
             'device_uuid' => ['required', 'uuid'],
             'platform' => ['required', 'string', 'in:ios,android'],
             'app_version' => ['nullable', 'string', 'max:50'],
-            'mode' => ['required', 'string', 'in:online,offline'],
+            // Optional: a device may register before the participant has picked
+            // a mode. Requiring it would force the client to invent a default,
+            // which is exactly how the split came to report fiction.
+            'mode' => ['nullable', 'string', 'in:online,offline'],
         ]);
 
         $existing = Device::where('device_uuid', $data['device_uuid'])->first();
@@ -38,7 +41,7 @@ class DeviceController extends Controller
                 'user_id' => $request->user()->id,
                 'platform' => $data['platform'],
                 'app_version' => $data['app_version'] ?? null,
-                'mode' => $data['mode'],
+                ...(isset($data['mode']) ? ['mode' => $data['mode']] : []),
                 'last_seen_at' => now(),
             ]
         );
