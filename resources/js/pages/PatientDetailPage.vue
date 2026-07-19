@@ -175,6 +175,13 @@ const medBand = (v) => (v === null ? 'neutral' : v >= 80 ? 'success' : v >= 50 ?
                                 <td class="px-4 py-3">
                                     <UBadge :color="riskColor(s.risk_badge)" variant="subtle"
                                             :label="t(`risk.${s.risk_badge ?? 'unknown'}`)" />
+                                    <!-- The tissue the model actually found.
+                                         Shown next to the risk badge because the
+                                         two are read together. -->
+                                    <span v-if="s.tissue_summary"
+                                          class="ms-2 text-xs text-slate-500 dark:text-slate-400">
+                                        {{ s.tissue_summary }}
+                                    </span>
                                 </td>
                             </tr>
                         </tbody>

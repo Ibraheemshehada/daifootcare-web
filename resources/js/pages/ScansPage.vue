@@ -57,19 +57,20 @@ function sizeLabel(scan) {
             </template>
         </UAlert>
 
-        <TableSkeleton v-if="loading" :columns="6" />
+        <TableSkeleton v-if="loading" :columns="7" />
 
         <div
             v-else-if="scans.length"
             class="overflow-x-auto rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900"
         >
-            <table class="w-full min-w-[52rem] text-sm">
+            <table class="w-full min-w-[60rem] text-sm">
                 <thead class="border-b border-slate-200 dark:border-slate-800">
                     <tr class="text-xs uppercase tracking-wide text-slate-600 dark:text-slate-400">
                         <th class="px-4 py-3 text-start font-medium">{{ t('scans.captured') }}</th>
                         <th class="px-4 py-3 text-start font-medium">{{ t('scans.patient') }}</th>
                         <th class="px-4 py-3 text-start font-medium">{{ t('scans.size') }}</th>
                         <th class="px-4 py-3 text-start font-medium">{{ t('scans.area') }}</th>
+                        <th class="px-4 py-3 text-start font-medium">{{ t('scans.tissue') }}</th>
                         <th class="px-4 py-3 text-start font-medium">{{ t('scans.risk') }}</th>
                         <th class="px-4 py-3 text-start font-medium">{{ t('scans.source') }}</th>
                     </tr>
@@ -91,6 +92,14 @@ function sizeLabel(scan) {
                         </td>
                         <td class="whitespace-nowrap px-4 py-3 tabular-nums text-slate-600 dark:text-slate-300">
                             {{ scan.area_cm2 ? `${scan.area_cm2.toFixed(2)} cm²` : '—' }}
+                        </td>
+                        <!-- Every tissue found, not just the headline: a bed
+                             usually holds several, and the rest of the answer
+                             used to be discarded before it reached here. -->
+                        <td class="px-4 py-3 text-slate-600 dark:text-slate-300">
+                            <span :title="scan.tissue_summary ?? ''">
+                                {{ scan.tissue_summary ?? '—' }}
+                            </span>
                         </td>
                         <td class="px-4 py-3">
                             <UBadge

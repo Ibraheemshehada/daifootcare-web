@@ -51,7 +51,7 @@ DEVICE = {
             'healing_progress': 97.11588541666667,
         },
         'labels': {
-            'tissue_type': 'Callus',
+            'tissue_type': 'Granulation',
             'infection': 'Present',
             'ischaemia': 'Adequate',
             'risk_badge': 'Infection Detected',
@@ -77,8 +77,8 @@ DEVICE = {
             'healing_progress': 85.45182291666666,
         },
         'labels': {
-            # Necrosis. Three classes clear their thresholds on this wound and
-            # the top two sit 0.013 apart, so ranking by probability made the
+            # Necrosis. Four classes clear their thresholds on this wound, and
+            # the top two sit 0.013 apart — so ranking by probability made the
             # device say Necrosis and the server say Callus for one photograph.
             'tissue_type': 'Necrosis',
             'infection': 'Present',
@@ -168,6 +168,32 @@ def test_dimensions_within_tolerance():
                 f'{name} healing_progress diverged at calibration={ppc}: '
                 f'device={d:.4f} server={sv:.4f}'
             )
+
+
+def test_presence_flags_match():
+    """The contract now that the analysis reports every class.
+
+    A single headline could be kept stable by choosing it carefully. The set of
+    tissues reported as *present* cannot — each is an independent threshold
+    decision, and each is something a clinician will read. So every class must
+    land on the same side of its threshold on both platforms.
+    """
+    an = _analyzer()
+
+    for name, expected in DEVICE.items():
+        data = open(_fixture(name), 'rb').read()
+        got = an.analyse(data, pixels_per_cm=40.0).to_json()
+        server = {f['type']: f for f in got['tissue_findings']}
+
+        for cls, device_p in expected['tissue_probs'].items():
+            device_present = device_p >= P.TISSUE_THRESHOLDS[cls]
+            assert server[cls]['is_present'] == device_present, (
+                f'{name} {cls} is present on one platform and not the other: '
+                f'device {device_p:.5f}, server '
+                f'{server[cls]["probability"]:.5f}, '
+                f'threshold {P.TISSUE_THRESHOLDS[cls]}'
+            )
+            assert server[cls]['threshold_used'] == P.TISSUE_THRESHOLDS[cls]
 
 
 def test_a_label_cannot_flip_between_modes():

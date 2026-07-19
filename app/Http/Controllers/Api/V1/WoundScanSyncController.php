@@ -42,7 +42,17 @@ class WoundScanSyncController extends Controller
             'records.*.area_cm2' => ['nullable', 'numeric', 'min:0', 'max:10000'],
             'records.*.depth_cm' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'records.*.is_calibrated' => ['nullable', 'boolean'],
+            // { label, findings[] }. The findings are validated in shape
+            // because the dashboard derives a clinical headline from them; a
+            // malformed probability would otherwise become a wound described
+            // wrongly rather than an obvious error here.
             'records.*.tissue_json' => ['nullable', 'array'],
+            'records.*.tissue_json.label' => ['nullable', 'string', 'max:50'],
+            'records.*.tissue_json.findings' => ['nullable', 'array', 'max:20'],
+            'records.*.tissue_json.findings.*.type' => ['required_with:records.*.tissue_json.findings', 'string', 'max:50'],
+            'records.*.tissue_json.findings.*.probability' => ['required_with:records.*.tissue_json.findings', 'numeric', 'between:0,1'],
+            'records.*.tissue_json.findings.*.is_present' => ['required_with:records.*.tissue_json.findings', 'boolean'],
+            'records.*.tissue_json.findings.*.threshold_used' => ['required_with:records.*.tissue_json.findings', 'numeric', 'between:0,1'],
             'records.*.infection_present' => ['nullable', 'boolean'],
             'records.*.infection_prob' => ['nullable', 'numeric', 'between:0,1'],
             'records.*.ischaemia_present' => ['nullable', 'boolean'],

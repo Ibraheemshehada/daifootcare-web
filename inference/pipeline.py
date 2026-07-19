@@ -44,12 +44,41 @@ TISSUE_THRESHOLDS = {
 CLIP_MEAN = np.array([0.48145466, 0.45782750, 0.40821073], dtype=np.float32)
 CLIP_STD = np.array([0.26862954, 0.26130258, 0.27577711], dtype=np.float32)
 
-# Descending clinical seriousness, for breaking a near-tie between tissue
-# classes. Must match _tissueSeverity in ai_service.dart.
-TISSUE_SEVERITY = ['necrosis', 'slough', 'callus', 'granulation', 'epithelial']
+# Descending clinical seriousness, used to choose which present class to
+# headline. Must match TissueFinding.severityOrder in tissue_finding.dart.
+#
+# Necrotic and sloughy tissue are devitalised and drive debridement decisions,
+# so they lead. Callus sits below granulation deliberately: it is a pressure
+# finding worth naming, but a bed that is mostly granulating should not be
+# headlined as callus because callus scraped over a low threshold.
+TISSUE_SEVERITY = ['necrosis', 'slough', 'granulation', 'callus', 'epithelial']
 
 INFECTION_THRESHOLD = 0.41
 ISCHAEMIA_THRESHOLD = 0.61
+
+
+@dataclass
+class TissueFinding:
+    """One tissue class the model considered, and what it concluded.
+
+    Mirrors TissueFinding in the app. The head is multi-label — a wound bed
+    holds several tissue types at once — so every class is reported with the
+    threshold it was judged against, rather than collapsing the answer to one
+    winning label and discarding the rest.
+    """
+
+    type: str
+    probability: float
+    is_present: bool
+    threshold_used: float
+
+    def to_json(self) -> dict:
+        return {
+            'type': self.type,
+            'probability': self.probability,
+            'is_present': self.is_present,
+            'threshold_used': self.threshold_used,
+        }
 
 
 @dataclass
@@ -57,6 +86,7 @@ class AnalysisResult:
     length: float
     width: float
     depth: float
+    tissue_findings: list
     tissue_type: str
     infection: str
     ischaemia: str
@@ -67,7 +97,9 @@ class AnalysisResult:
     area_cm2: float
 
     def to_json(self) -> dict:
-        return asdict(self)
+        d = asdict(self)
+        d['tissue_findings'] = [f.to_json() for f in self.tissue_findings]
+        return d
 
 
 class WoundAnalyzer:
@@ -209,7 +241,7 @@ class WoundAnalyzer:
         length, width, area = self._segment(image, pixels_per_cm)
 
         emb = self._embedding(image)
-        tissue = _pick_tissue(self._tissue_probs(emb))
+        findings = _build_tissue_findings(self._tissue_probs(emb))
         infection, ischaemia, badge = self._infection_status(emb)
 
         return AnalysisResult(
@@ -218,7 +250,10 @@ class WoundAnalyzer:
             # Depth cannot come from a photo. It is the clinician's probe
             # measurement or it is absent; it is never estimated.
             depth=manual_depth_cm or 0.0,
-            tissue_type=tissue,
+            tissue_findings=findings,
+            # Derived, and kept in the payload so a client older than this
+            # server still gets a headline it understands.
+            tissue_type=_primary_tissue_type(findings),
             infection=infection,
             ischaemia=ischaemia,
             risk_badge=badge,
@@ -394,34 +429,43 @@ def _pca_extent(px: np.ndarray, py: np.ndarray):
     return float(a.max() - a.min()), float(b.max() - b.min())
 
 
-def _pick_tissue(probs: dict) -> str:
-    """The single tissue label shown for a wound.
+def _build_tissue_findings(probs: dict) -> list:
+    """One finding per class: probability, whether it cleared its own tuned
+    threshold, and the threshold used."""
+    return [
+        TissueFinding(
+            type=name,
+            probability=float(probs.get(name, 0.0)),
+            is_present=float(probs.get(name, 0.0)) >= TISSUE_THRESHOLDS.get(name, 0.5),
+            threshold_used=TISSUE_THRESHOLDS.get(name, 0.5),
+        )
+        for name in TISSUE_CLASSES
+    ]
 
-    The model is multi-label: a wound bed genuinely contains several tissue
-    types at once, and each class is present when it clears its own threshold.
-    This reports the most clinically serious of the classes present, rather than
-    whichever happens to score highest.
 
-    That is a clinical judgement first — a bed with necrosis and callus in it is
-    a necrotic wound, and naming the callus because it scored a hundredth higher
-    would bury the finding that matters. It also removes a real defect: ranking
-    by probability made the headline turn on noise. On one real photograph
-    necrosis scored 0.9887 on the device and 0.9749 here, while callus scored
-    0.9787 and 0.9911, so the same wound was labelled Necrosis offline and
-    Callus online. Ordering by severity cannot flip that way.
+def _primary_tissue_type(findings: list) -> str:
+    """The single label, for the places that can show only one.
 
-    Kept identical to _pickTissueLabel in ai_service.dart.
+    The most clinically serious class present, not the highest scoring one.
+    Ranking by probability let a hundredth of a point decide between necrosis
+    and callus, and the phone and the server disagreed on the same photograph.
+    Severity cannot move that way.
+
+    With nothing present it falls back to the most probable class, so the field
+    is never blank. Kept identical to TissueFindings.primaryType in the app.
     """
-    present = [k for k, v in probs.items() if v >= TISSUE_THRESHOLDS.get(k, 0.5)]
+    if not findings:
+        return 'Unknown'
 
-    if not present:
-        if not probs:
-            return 'Unknown'
-        best = max(probs, key=probs.get)
-        return best[0].upper() + best[1:]
+    candidates = [f for f in findings if f.is_present] or list(findings)
 
-    label = min(present, key=TISSUE_SEVERITY.index)
-    return label[0].upper() + label[1:]
+    def rank(f):
+        order = (TISSUE_SEVERITY.index(f.type)
+                 if f.type in TISSUE_SEVERITY else len(TISSUE_SEVERITY))
+        return (order, -f.probability)
+
+    best = min(candidates, key=rank)
+    return best.type[0].upper() + best.type[1:]
 
 
 def _healing_progress(area_cm2: float) -> float:

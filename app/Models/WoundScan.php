@@ -29,6 +29,15 @@ class WoundScan extends Model
         'synced_at',
     ];
 
+    /**
+     * Appended so every endpoint returning a scan carries the derived tissue
+     * fields, and no client has to reimplement the severity rule.
+     */
+    protected $appends = [
+        'primary_tissue_type',
+        'tissue_summary',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -45,6 +54,86 @@ class WoundScan extends Model
             'infection_prob' => 'float',
             'ischaemia_prob' => 'float',
         ];
+    }
+
+    /**
+     * Tissue classes in descending clinical seriousness.
+     *
+     * Must match TissueFinding::severityOrder in the app and TISSUE_SEVERITY in
+     * inference/pipeline.py. Necrotic and sloughy tissue are devitalised and
+     * drive debridement decisions, so they lead; callus sits below granulation
+     * because a bed that is mostly granulating should not be headlined as
+     * callus for scraping over a low threshold.
+     */
+    public const TISSUE_SEVERITY = [
+        'necrosis', 'slough', 'granulation', 'callus', 'epithelial',
+    ];
+
+    /**
+     * The per-class findings, or an empty array.
+     *
+     * `tissue_json` holds `{ label, findings[] }`. Scans synced before the app
+     * reported per-class results carry only the label, so this is empty for
+     * them rather than fabricated — the probabilities were never recorded.
+     */
+    public function getTissueFindingsAttribute(): array
+    {
+        return $this->tissue_json['findings'] ?? [];
+    }
+
+    /** Every class that cleared its own threshold, most serious first. */
+    public function getPresentTissuesAttribute(): array
+    {
+        $present = array_values(array_filter(
+            $this->tissue_findings,
+            fn ($f) => ($f['is_present'] ?? false) === true
+        ));
+
+        usort($present, function ($a, $b) {
+            $ia = array_search($a['type'] ?? '', self::TISSUE_SEVERITY, true);
+            $ib = array_search($b['type'] ?? '', self::TISSUE_SEVERITY, true);
+            $ia = $ia === false ? PHP_INT_MAX : $ia;
+            $ib = $ib === false ? PHP_INT_MAX : $ib;
+
+            return $ia === $ib
+                ? ($b['probability'] ?? 0) <=> ($a['probability'] ?? 0)
+                : $ia <=> $ib;
+        });
+
+        return $present;
+    }
+
+    /**
+     * The single label to show where only one fits: the most clinically serious
+     * class present.
+     *
+     * Derived here rather than trusted from the payload so the dashboard and
+     * the phone cannot drift apart, and so scans that predate findings still
+     * resolve through their stored label.
+     */
+    public function getPrimaryTissueTypeAttribute(): ?string
+    {
+        $present = $this->present_tissues;
+
+        if ($present !== []) {
+            return ucfirst($present[0]['type']);
+        }
+
+        $label = $this->tissue_json['label'] ?? null;
+
+        return $label ? ucfirst($label) : null;
+    }
+
+    /** "Necrosis, Slough, Callus" — every tissue found, most serious first. */
+    public function getTissueSummaryAttribute(): ?string
+    {
+        $present = $this->present_tissues;
+
+        if ($present === []) {
+            return $this->primary_tissue_type;
+        }
+
+        return implode(', ', array_map(fn ($f) => ucfirst($f['type']), $present));
     }
 
     public function patient(): BelongsTo
