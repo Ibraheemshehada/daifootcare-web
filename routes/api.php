@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\ClinicalController;
 use App\Http\Controllers\Api\V1\ExportController;
+use App\Http\Controllers\Api\V1\ModelController;
 use App\Http\Controllers\Api\V1\OperationsController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\DeviceController;
@@ -33,6 +34,13 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/forgot-password', [PasswordResetController::class, 'request']);
         Route::post('auth/reset-password', [PasswordResetController::class, 'reset']);
     });
+
+    // --- Model bundle (public) -------------------------------------------
+    // A phone choosing Offline mode at first launch has not necessarily signed
+    // in yet, and these are the same files shipped in every APK.
+    Route::get('models/manifest', [ModelController::class, 'manifest']);
+    Route::get('models/file/{name}', [ModelController::class, 'file'])
+        ->where('name', '[A-Za-z0-9._-]+');
 
     // --- Authenticated --------------------------------------------------
     Route::middleware('auth:sanctum')->group(function () {

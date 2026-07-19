@@ -22,3 +22,7 @@
 Homestead.json
 Homestead.yaml
 Thumbs.db
+
+# Published model bundle (~208 MB) — deployed to the server, never committed
+/storage/app/models/*
+!/storage/app/models/.gitkeep
