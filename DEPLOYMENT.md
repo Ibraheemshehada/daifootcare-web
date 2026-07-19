@@ -279,19 +279,101 @@ to do casually.
 
 ---
 
-## 8. What is not built yet
+## 8. The inference sidecar (online mode)
 
-Two pieces of the plan remain, and the order matters:
+Patients who choose online mode do not download the models — the server analyses
+their photo instead. PHP cannot run TFLite, so this is a separate Python service.
+Laravel proxies to it; it is never reached directly.
 
-**Server-side analysis (F5).** Online mode currently has no server to analyse
-against — the app still runs the models locally in both modes. PHP has no TFLite
-runtime, so this needs a small Python service (FastAPI + tflite-runtime) beside
-Laravel, with `POST /api/v1/analyse` proxying to it.
+```bash
+sudo apt install -y python3-venv python3-pip
+cd /var/www/diafootcare/inference
+python3 -m venv .venv && . .venv/bin/activate
+pip install -r requirements.txt
+```
+
+On a VPS prefer the small runtime over full TensorFlow — `tensorflow` pulls
+about 600 MB for an interpreter you could have in 50:
+
+```bash
+pip install ai-edge-litert
+# then in pipeline.py swap the tf.lite.Interpreter import for
+#   from ai_edge_litert.interpreter import Interpreter
+```
+
+Run it under systemd so it survives a reboot — `/etc/systemd/system/dfc-inference.service`:
+
+```ini
+[Unit]
+Description=DiaFootCare inference
+After=network.target
+
+[Service]
+User=www-data
+WorkingDirectory=/var/www/diafootcare/inference
+Environment=DFC_MODELS_DIR=/var/www/diafootcare/storage/app/models
+# 127.0.0.1 is load-bearing. This service runs the models and authenticates
+# nobody; Laravel is its only client and does the authorising. Do not bind 0.0.0.0.
+ExecStart=/var/www/diafootcare/inference/.venv/bin/uvicorn server:app           --host 127.0.0.1 --port 8500 --workers 1
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+One worker, deliberately: each holds the models in memory, so a second worker
+costs another ~200 MB of RAM for capacity you almost certainly do not need. Add
+workers only when the queue is measurably the bottleneck.
+
+```bash
+sudo systemctl enable --now dfc-inference
+curl -s http://127.0.0.1:8500/health      # {"status":"ok",...}
+```
+
+Tell Laravel where it is, in `.env`:
+
+```ini
+INFERENCE_URL=http://127.0.0.1:8500
+INFERENCE_TIMEOUT=30
+```
+
+Then check the whole chain, which is the part worth verifying:
+
+```bash
+# Must be 401 — the endpoint is authenticated.
+curl -s -o /dev/null -w '%{http_code}
+' -X POST https://your-domain/api/v1/analyse   -H 'Accept: application/json' -F 'image=@wound.jpg'
+
+# With a token: an analysis in about a second.
+curl -s -X POST https://your-domain/api/v1/analyse   -H "Authorization: Bearer $TOKEN" -H 'Accept: application/json'   -F 'image=@wound.jpg' -F 'pixels_per_cm=40'
+```
+
+**nginx must not expose port 8500.** Nothing in the config in §4 does, but if you
+add a proxy block for it you have published an unauthenticated analysis service.
+
+### Keeping the two modes agreeing
+
+`inference/pipeline.py` is a port of the phone's `ai_service.dart`, and the two
+must describe a wound identically. Run the parity suite after any change to
+either:
+
+```bash
+cd /var/www/diafootcare && python inference/parity_test.py
+```
+
+It needs the fixture photographs in `inference/testdata/` — real clinical
+images, deliberately not in git. See `inference/README.md`.
+
+---
+
+## 9. What is not built yet
+
 
 **Removing the models from the APK (F6).** This is what takes the download from
-~220 MB to ~20 MB, and it is deliberately last: until F5 exists, online mode
-depends on the bundled assets, so unbundling now would leave online-mode users
-unable to analyse anything at all.
+~220 MB to ~20 MB. It is ready technically — the app already prefers downloaded
+files and online mode no longer needs local models — but it should not land
+while the tissue-label question in `PHASE3_TRACKER.md` is open, since that is
+the last thing still in flux on the analysis path.
 
-Until then the APK still carries the models, and the download is additive rather
-than a replacement.
+Until it lands the APK still carries the models, and the download is additive
+rather than a replacement.
