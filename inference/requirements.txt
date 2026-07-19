@@ -1,0 +1,10 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+python-multipart>=0.0.9
+numpy>=1.26
+opencv-python-headless>=4.9
+pillow>=10.3
+# On a Linux VPS prefer the small runtime over full TensorFlow:
+#   pip install ai-edge-litert
+# and change the import in pipeline.py. Full tensorflow works but pulls ~600 MB.
+tensorflow>=2.16

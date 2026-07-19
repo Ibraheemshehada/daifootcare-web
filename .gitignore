@@ -26,3 +26,9 @@ Thumbs.db
 # Published model bundle (~208 MB) — deployed to the server, never committed
 /storage/app/models/*
 !/storage/app/models/.gitkeep
+
+# Clinical photographs used as parity fixtures. Real wound images of real
+# people: kept locally and shared deliberately, not carried in git history
+# where they cannot be removed.
+/inference/testdata/*
+!/inference/testdata/.gitkeep

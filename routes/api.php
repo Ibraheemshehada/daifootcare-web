@@ -5,6 +5,7 @@ use App\Http\Controllers\Api\V1\ClinicalController;
 use App\Http\Controllers\Api\V1\ExportController;
 use App\Http\Controllers\Api\V1\ModelController;
 use App\Http\Controllers\Api\V1\OperationsController;
+use App\Http\Controllers\Api\V1\AnalysisController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\DeviceController;
 use App\Http\Controllers\Api\V1\GuestController;
@@ -50,6 +51,11 @@ Route::prefix('v1')->group(function () {
         Route::post('auth/claim', [GuestController::class, 'claim']);
         Route::post('auth/password', [AuthController::class, 'updatePassword']);
         Route::post('auth/profile', [AuthController::class, 'updateProfile']);
+
+        // Online-mode analysis. Authenticated: it spends real CPU on the
+        // server, and the image is a patient's photograph.
+        Route::post('analyse', [AnalysisController::class, 'analyse'])
+            ->middleware('throttle:20,1');
 
         Route::post('devices/register', [DeviceController::class, 'register']);
         Route::patch('devices/{uuid}/mode', [DeviceController::class, 'updateMode']);

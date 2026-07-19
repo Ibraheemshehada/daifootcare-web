@@ -3,6 +3,19 @@
 return [
 
     /*
+     * The Python inference sidecar. Loopback only: it runs the models and
+     * authenticates nobody, so it must never be reachable from outside the
+     * host. Laravel is its only client and does the authorising.
+     */
+    'inference' => [
+        'url' => env('INFERENCE_URL', 'http://127.0.0.1:8500'),
+        // A wound analysis is about a second of CPU; anything past this is a
+        // sidecar in trouble, and a patient waiting on a spinner is worse than
+        // a patient told to try again.
+        'timeout' => (int) env('INFERENCE_TIMEOUT', 30),
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Third Party Services
     |--------------------------------------------------------------------------
