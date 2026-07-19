@@ -68,6 +68,7 @@ Route::prefix('v1')->group(function () {
         // --- Clinician only ---------------------------------------------
         Route::middleware('clinician')->group(function () {
             Route::get('dashboard/stats', [DashboardController::class, 'stats']);
+            Route::get('dashboard/trends', [DashboardController::class, 'trends']);
             Route::get('patients', [PatientController::class, 'index']);
             Route::get('patients/{patient}', [PatientController::class, 'show']);
             // Full clinical record for one patient, assembled in a single payload.

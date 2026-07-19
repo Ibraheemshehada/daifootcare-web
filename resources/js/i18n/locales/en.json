@@ -46,7 +46,18 @@
         "models_downloaded": "Models downloaded",
         "sync_batches": "Sync batches, 24h",
         "sync_failed": "Failed or partial, 24h",
-        "guests": "Guest participants"
+        "guests": "Guest participants",
+        "trends": "Trends",
+        "range": "Time range",
+        "last_n_days": "{n} days",
+        "scans_over_time": "Scans over time",
+        "scans_over_time_hint": "Wound scans captured each day, including days with none.",
+        "active_over_time": "Active participants",
+        "active_over_time_hint": "Distinct participants using the app each day.",
+        "risk_distribution": "Risk distribution",
+        "risk_distribution_hint": "All scans by severity, most serious first.",
+        "sync_failures": "Sync failures",
+        "sync_failures_hint": "Failed or partial batches per day. Any sustained rise means records are stuck on phones."
     },
     "devices": {
         "title": "Devices",
@@ -62,7 +73,10 @@
         "not_downloaded": "Not downloaded",
         "empty": "No devices have registered yet.",
         "scans_sent": "Scans sent",
-        "detail_title": "Device"
+        "detail_title": "Device",
+        "stale": "Not reporting",
+        "sync_failures": "Sync failures",
+        "healthy": "Healthy"
     },
     "patients": {
         "title": "Patients",
@@ -185,7 +199,19 @@
         "consent": "Consent history",
         "covers_prior": "covers earlier responses",
         "no_consent": "No consent recorded yet.",
-        "below_target": "Below target"
+        "below_target": "Below target",
+        "devices": "Devices",
+        "devices_title": "Devices used",
+        "devices_hint": "Where this record comes from. A device that stopped reporting means data is still on the phone.",
+        "no_devices": "This participant has not registered a device.",
+        "no_email": "No email — anonymous participant",
+        "guest_notice": "This is an anonymous participant. The record is identified only by their device, with no name or email attached.",
+        "wellbeing": "Well-being burden",
+        "wellbeing_hint": "Mean of pain, mobility and mood (0–10, higher is worse).",
+        "no_wellbeing": "No well-being check-ins yet.",
+        "sus_history": "Usability (SUS)",
+        "no_sus": "No SUS responses yet.",
+        "pre_consent": "pre-consent"
     },
     "study": {
         "title": "Study",

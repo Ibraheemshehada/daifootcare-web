@@ -5,6 +5,9 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Models\Appointment;
 use App\Models\ConsentRecord;
+use App\Models\Device;
+use App\Models\EngagementDaily;
+use App\Models\Medication;
 use App\Models\GlucoseReading;
 use App\Models\MedicationLog;
 use App\Models\Patient;
@@ -70,8 +73,44 @@ class PatientRecordController extends Controller
             ? null
             : round($medLogs->where('taken', true)->count() / $medLogs->count() * 100);
 
+        // Every device this participant has used, with the numbers a clinician
+        // would otherwise have to open a second page to see.
+        $devices = Device::where('user_id', $patient->user_id)
+            ->orderByDesc('last_seen_at')
+            ->get()
+            ->map(function ($d) {
+                $d->scans_count = WoundScan::where('device_id', $d->id)->count();
+                $d->batches_count = $d->syncLogs()->count();
+                $d->failed_batches = $d->syncLogs()->whereIn('status', ['failed', 'partial'])->count();
+                $d->is_stale = $d->last_seen_at === null
+                    || $d->last_seen_at->lt(now()->subDays(7));
+
+                return $d;
+            });
+
+        $medications = Medication::where('patient_id', $patient->id)
+            ->orderByDesc('is_active')->orderBy('name')->get()
+            ->map(function ($m) use ($since) {
+                $logs = MedicationLog::where('medication_id', $m->id)
+                    ->where('log_date', '>=', $since->toDateString())->get();
+                $m->adherence_30d = $logs->count()
+                    ? round($logs->where('taken', true)->count() / $logs->count() * 100)
+                    : null;
+
+                return $m;
+            });
+
         return response()->json([
             'patient' => $patient,
+            'devices' => $devices,
+            'medications' => $medications,
+            // Feature usage for this participant, so engagement is visible on the
+            // chart rather than only in the study-wide view.
+            'engagement' => EngagementDaily::where('patient_id', $patient->id)
+                ->where('name', 'feature_open')
+                ->selectRaw('target, SUM(event_count) as opens')
+                ->whereNotNull('target')->groupBy('target')
+                ->orderByDesc('opens')->limit(6)->get(),
             'summary' => [
                 'scans_total' => $scans->count(),
                 'latest_scan_at' => $scans->first()?->captured_at,

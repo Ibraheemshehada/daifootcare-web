@@ -51,17 +51,24 @@ const bounds = computed(() => {
 
     let min = Math.min(...ys);
     let max = Math.max(...ys);
+
+    // Whether the *data* is non-negative has to be decided before any padding.
+    // Reading it afterwards let an all-zero series pad its way to min = -1 and
+    // then sail through the clamp, drawing an axis of "-1.2 participants".
+    const dataIsNonNegative = min >= 0;
+
     if (max - min < 1e-6) {
         const pad = Math.abs(max) * 0.1 || 1;
         min -= pad;
         max += pad;
     }
+
     const headroom = (max - min) * 0.1;
-    // An area or a concentration cannot be negative; letting the padded axis dip
-    // below zero invites reading a floor that does not exist.
+    // An area, a count or a concentration cannot be negative; letting the padded
+    // axis dip below zero invites reading a floor that does not exist.
     const lo = min - headroom;
     return {
-        min: props.nonNegative && min >= 0 ? Math.max(0, lo) : lo,
+        min: props.nonNegative && dataIsNonNegative ? Math.max(0, lo) : lo,
         max: max + headroom,
     };
 });
