@@ -351,6 +351,18 @@ curl -s -X POST https://your-domain/api/v1/analyse   -H "Authorization: Bearer $
 **nginx must not expose port 8500.** Nothing in the config in §4 does, but if you
 add a proxy block for it you have published an unauthenticated analysis service.
 
+### After changing pipeline.py, restart the sidecar
+
+The models and the module are loaded once at startup, so editing `pipeline.py`
+changes nothing until the service restarts. This is easy to miss because the
+endpoint keeps answering perfectly — with the old code. During testing it
+returned `Callus` where the parity suite said `Necrosis`, and the difference was
+entirely a stale process.
+
+```bash
+sudo systemctl restart dfc-inference
+```
+
 ### Keeping the two modes agreeing
 
 `inference/pipeline.py` is a port of the phone's `ai_service.dart`, and the two
