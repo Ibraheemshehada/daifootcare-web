@@ -30,13 +30,9 @@ model — a file of exactly the right length that could never verify.
 `inference/pipeline.py` ports the phone's analysis; `inference/server.py` is a
 FastAPI sidecar on loopback; `POST /api/v1/analyse` is the authenticated,
 rate-limited front door. The sidecar authenticates nobody by design — Laravel
-decides who may ask.
-
-`/analyse` still does not store the image it is given: that photo was sent to be
-measured. Photographs are kept only through the separate upload endpoint below,
-which the phone calls after the scan record has synced and under a consent that
-names it. Keeping the two paths apart means analysing a photo and retaining one
-remain different decisions.
+decides who may ask. The photo is not stored: it was sent to be measured, not
+kept, and retaining a patient's wound photograph needs its own consent and
+retention rule, neither of which exists yet.
 
 Verified: 401 unauthenticated, correct analysis authenticated, non-images
 rejected before reaching the sidecar, ~1 s per analysis.
