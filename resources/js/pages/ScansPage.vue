@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useApiResource } from '@/composables/useApiResource';
 import PageHeader from '@/components/PageHeader.vue';
 import TableSkeleton from '@/components/TableSkeleton.vue';
+import Pagination from '@/components/Pagination.vue';
 
 const { t, d } = useI18n();
 const { data, loading, error, load } = useApiResource('/wound-scans');
@@ -117,5 +118,7 @@ function sizeLabel(scan) {
             <UIcon name="i-lucide-activity" class="mx-auto size-8 text-slate-400" />
             <p class="mt-3 text-sm text-slate-600 dark:text-slate-400">{{ t('scans.empty') }}</p>
         </div>
+        <Pagination :meta="data" :loading="loading" @change="(p) => load({ page: p })" />
+
     </div>
 </template>

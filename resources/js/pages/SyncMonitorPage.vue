@@ -5,6 +5,7 @@ import { useApiResource } from '@/composables/useApiResource';
 import PageHeader from '@/components/PageHeader.vue';
 import StatCard from '@/components/StatCard.vue';
 import DataTable from '@/components/DataTable.vue';
+import Pagination from '@/components/Pagination.vue';
 
 const { t, d } = useI18n();
 const failedOnly = ref(false);
@@ -73,5 +74,7 @@ const statusColor = { success: 'success', partial: 'warning', failed: 'error', p
                         :label="t(`sync.status_${row.status}`)" />
             </template>
         </DataTable>
+
+        <Pagination :meta="data?.logs" :loading="loading" @change="(p) => load({ page: p })" />
     </div>
 </template>

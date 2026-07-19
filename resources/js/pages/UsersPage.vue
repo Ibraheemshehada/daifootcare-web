@@ -6,6 +6,7 @@ import { useAuthStore } from '@/stores/auth';
 import api from '@/lib/api';
 import PageHeader from '@/components/PageHeader.vue';
 import DataTable from '@/components/DataTable.vue';
+import Pagination from '@/components/Pagination.vue';
 
 const { t } = useI18n();
 const auth = useAuthStore();
@@ -96,5 +97,7 @@ async function changeRole(user, role) {
                 </div>
             </template>
         </DataTable>
+
+        <Pagination :meta="data" :loading="loading" @change="(p) => load({ page: p })" />
     </div>
 </template>

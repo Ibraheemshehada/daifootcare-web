@@ -13,12 +13,18 @@ export function useApiResource(url, { params = {}, immediate = true } = {}) {
     const loading = ref(false);
     const error = ref(null);
 
+    // The params in force right now. Merged rather than replaced so paging to
+    // page 2 keeps an active search or filter — replacing them would silently
+    // widen the result set the moment a user pages through a filtered list.
+    let active = { ...params };
+
     async function load(overrideParams = {}) {
         loading.value = true;
         error.value = null;
+        active = { ...active, ...overrideParams };
 
         try {
-            const response = await api.get(url, { params: { ...params, ...overrideParams } });
+            const response = await api.get(url, { params: active });
             data.value = response.data;
             return response.data;
         } catch (e) {
@@ -34,5 +40,11 @@ export function useApiResource(url, { params = {}, immediate = true } = {}) {
         onMounted(() => load());
     }
 
-    return { data, loading, error, load };
+    /** Reset filters back to the defaults, e.g. when clearing a search. */
+    function reset(next = {}) {
+        active = { ...params, ...next };
+        return load();
+    }
+
+    return { data, loading, error, load, reset };
 }

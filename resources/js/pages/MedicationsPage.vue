@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useApiResource } from '@/composables/useApiResource';
 import PageHeader from '@/components/PageHeader.vue';
 import DataTable from '@/components/DataTable.vue';
+import Pagination from '@/components/Pagination.vue';
 
 const { t } = useI18n();
 const { data, loading, error, load } = useApiResource('/medications');
@@ -56,5 +57,7 @@ const band = (v) => (v === null ? 'neutral' : v >= 80 ? 'success' : v >= 50 ? 'w
                         :label="row.is_active ? t('medications.active') : t('medications.stopped')" />
             </template>
         </DataTable>
+
+        <Pagination :meta="data" :loading="loading" @change="(p) => load({ page: p })" />
     </div>
 </template>

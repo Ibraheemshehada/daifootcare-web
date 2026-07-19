@@ -4,6 +4,7 @@ import { useI18n } from 'vue-i18n';
 import { useApiResource } from '@/composables/useApiResource';
 import PageHeader from '@/components/PageHeader.vue';
 import DataTable from '@/components/DataTable.vue';
+import Pagination from '@/components/Pagination.vue';
 
 const { t, d } = useI18n();
 const scope = ref('upcoming');
@@ -57,5 +58,7 @@ const scopes = ['upcoming', 'past', 'all'];
                 <span class="text-slate-600 dark:text-slate-300">{{ row.location ?? '—' }}</span>
             </template>
         </DataTable>
+
+        <Pagination :meta="data" :loading="loading" @change="(p) => load({ page: p })" />
     </div>
 </template>

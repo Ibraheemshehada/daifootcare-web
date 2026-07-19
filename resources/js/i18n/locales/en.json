@@ -83,7 +83,26 @@
         "subtitle": "People enrolled in DiaFootCare.",
         "empty": "No patients yet.",
         "guest": "Guest",
-        "claimed": "Was guest"
+        "claimed": "Was guest",
+        "search": "Search by name or email",
+        "needs_attention": "Needs attention",
+        "showing": "Showing {shown} of {total}",
+        "no_matches": "No patients match that search.",
+        "none_need_attention": "Nobody is flagged right now.",
+        "no_flags": "No flags",
+        "wound_trend": "Wound area",
+        "scans_short": "scans",
+        "not_enough_scans": "Not enough scans to plot a trend",
+        "self_care_short": "Self-care",
+        "medication_short": "Medication",
+        "reason_high_risk": "High risk",
+        "reason_infection": "Infection",
+        "reason_ischaemia": "Impaired blood flow",
+        "reason_quiet": "No recent scan",
+        "reason_never_scanned": "Never scanned",
+        "reason_no_device": "No device",
+        "reason_device_silent": "Device not reporting",
+        "reason_medication_low": "Low medication adherence"
     },
     "scans": {
         "title": "Scan Feed",
@@ -326,5 +345,12 @@
         "sus_body": "Raw items Q1–Q10 plus the computed score and consent version, so items can be re-analysed.",
         "self-care_title": "Self-care logs",
         "self-care_body": "Per-task daily completion records."
+    },
+    "pagination": {
+        "label": "Pagination",
+        "showing": "Showing {from}–{to} of {total}",
+        "previous": "Previous page",
+        "next": "Next page",
+        "go_to": "Go to page {n}"
     }
 }

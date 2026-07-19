@@ -83,7 +83,26 @@
         "subtitle": "المشتركون في ديا فوت كير.",
         "empty": "لا يوجد مرضى بعد.",
         "guest": "ضيف",
-        "claimed": "كان ضيفًا"
+        "claimed": "كان ضيفًا",
+        "search": "ابحث بالاسم أو البريد الإلكتروني",
+        "needs_attention": "بحاجة إلى متابعة",
+        "showing": "عرض {shown} من {total}",
+        "no_matches": "لا يوجد مرضى مطابقون للبحث.",
+        "none_need_attention": "لا يوجد أحد مُنبَّه عليه حاليًا.",
+        "no_flags": "لا مؤشرات",
+        "wound_trend": "مساحة القرحة",
+        "scans_short": "فحص",
+        "not_enough_scans": "لا توجد فحوصات كافية لرسم اتجاه",
+        "self_care_short": "العناية الذاتية",
+        "medication_short": "الأدوية",
+        "reason_high_risk": "خطورة عالية",
+        "reason_infection": "التهاب",
+        "reason_ischaemia": "ضعف التروية",
+        "reason_quiet": "لا فحص حديث",
+        "reason_never_scanned": "لم يُجرِ أي فحص",
+        "reason_no_device": "لا يوجد جهاز",
+        "reason_device_silent": "الجهاز لا يُرسل",
+        "reason_medication_low": "التزام دوائي منخفض"
     },
     "scans": {
         "title": "سجل الفحوصات",
@@ -326,5 +345,12 @@
         "sus_body": "العناصر الخام من Q1 إلى Q10 مع الدرجة المحسوبة وإصدار الموافقة، لإتاحة إعادة التحليل.",
         "self-care_title": "سجلات العناية الذاتية",
         "self-care_body": "إنجاز المهام اليومية لكل مهمة."
+    },
+    "pagination": {
+        "label": "تصفّح الصفحات",
+        "showing": "عرض {from}–{to} من {total}",
+        "previous": "الصفحة السابقة",
+        "next": "الصفحة التالية",
+        "go_to": "الانتقال إلى صفحة {n}"
     }
 }
