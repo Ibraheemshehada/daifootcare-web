@@ -7,12 +7,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class WoundScan extends Model
 {
-    /**
-     * The storage path is deliberately hidden. It is an internal locator, and
-     * a client that has it will eventually be tempted to fetch it directly.
-     */
-    protected $hidden = ['image_path'];
-
     protected $fillable = [
         'local_uuid',
         'patient_id',
@@ -30,7 +24,6 @@ class WoundScan extends Model
         'ischaemia_prob',
         'risk_badge',
         'image_path',
-        'image_uploaded_at',
         'models_version',
         'source',
         'synced_at',
@@ -43,27 +36,13 @@ class WoundScan extends Model
     protected $appends = [
         'primary_tissue_type',
         'tissue_summary',
-        'has_image',
     ];
-
-    /**
-     * Whether a photograph is attached.
-     *
-     * The dashboard needs to know whether to offer the image without being
-     * handed the storage path — that path is never useful to a client, because
-     * reading it goes through an authorising controller.
-     */
-    public function getHasImageAttribute(): bool
-    {
-        return $this->image_path !== null;
-    }
 
     protected function casts(): array
     {
         return [
             'captured_at' => 'datetime',
             'synced_at' => 'datetime',
-            'image_uploaded_at' => 'datetime',
             'is_calibrated' => 'boolean',
             'infection_present' => 'boolean',
             'ischaemia_present' => 'boolean',

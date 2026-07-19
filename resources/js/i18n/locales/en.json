@@ -115,11 +115,7 @@
     "source": "Source",
     "empty": "No scans have synced yet.",
     "no_wound": "No wound detected",
-    "tissue": "Tissue",
-    "photo": "Photo",
-    "no_image": "No photo",
-    "image_failed": "Unavailable",
-    "image_alt": "Wound photograph"
+    "tissue": "Tissue"
   },
   "risk": {
     "normal": "Normal",

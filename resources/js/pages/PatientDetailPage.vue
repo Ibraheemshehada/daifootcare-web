@@ -1,8 +1,7 @@
 <script setup>
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { useI18n } from 'vue-i18n'
-import WoundImage from '../components/WoundImage.vue';
+import { useI18n } from 'vue-i18n';
 import { useApiResource } from '@/composables/useApiResource';
 import PageHeader from '@/components/PageHeader.vue';
 import StatCard from '@/components/StatCard.vue';
@@ -159,7 +158,6 @@ const medBand = (v) => (v === null ? 'neutral' : v >= 80 ? 'success' : v >= 50 ?
                                 <th class="px-4 py-3 text-start font-medium">{{ t('scans.size') }}</th>
                                 <th class="px-4 py-3 text-start font-medium">{{ t('scans.area') }}</th>
                                 <th class="px-4 py-3 text-start font-medium">{{ t('scans.risk') }}</th>
-                                <th class="px-4 py-3 text-start font-medium">{{ t('scans.photo') }}</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
@@ -184,12 +182,6 @@ const medBand = (v) => (v === null ? 'neutral' : v >= 80 ? 'success' : v >= 50 ?
                                           class="ms-2 text-xs text-slate-500 dark:text-slate-400">
                                         {{ s.tissue_summary }}
                                     </span>
-                                </td>
-                                <!-- The photograph the measurements came from.
-                                     A clinician reading "Necrosis 99%" will want
-                                     to see the wound before acting on it. -->
-                                <td class="px-4 py-3">
-                                    <WoundImage :scan-id="s.id" :has-image="s.has_image" />
                                 </td>
                             </tr>
                         </tbody>
