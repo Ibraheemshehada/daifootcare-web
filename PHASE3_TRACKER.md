@@ -6,6 +6,68 @@ read together, because most of what follows is one contract split across them.
 
 ---
 
+## START HERE — handoff for 2026-07-20
+
+**The server side of Phase 3 is complete.** Nothing here blocks tomorrow's work,
+which is F6 in the app repo (removing the models from the APK).
+
+### If you are deploying
+
+`DEPLOYMENT.md` is the document. Two things in it are load-bearing:
+
+1. **nginx must serve the model files, not PHP** (§1, §4). `php artisan serve`
+   could not deliver the 175 MB backbone once. The nginx block is written but
+   **untested** — run the curl checks at the end of §4 before pointing a phone at
+   it, and treat a `200` where a `206` is expected as a broken deployment.
+2. **The inference sidecar runs on loopback** (§8) under systemd, one worker. It
+   authenticates nobody; Laravel does the authorising. Never expose port 8500.
+
+### Two things that will waste your afternoon if you forget
+
+- **Restart the sidecar after editing `pipeline.py`.** It loads models and the
+  module once at startup and will keep serving correct-looking results from the
+  old code. It returned Callus where the parity suite said Necrosis during
+  testing, purely from a stale process.
+- **The parity fixtures are not in git.** They are photographs of real patients.
+  `inference/testdata/` is gitignored; put them there before running
+  `python inference/parity_test.py`.
+
+### State of the world
+
+| | |
+|---|---|
+| Parity suite | 4 checks pass |
+| Laravel tests | pass |
+| Vite build | clean |
+| Endpoints verified | manifest, ranged file, analyse, sync |
+
+### What is open here
+
+1. **Model endpoints are unmetered** — anyone with the URL can pull 208 MB.
+   Fine for a pilot; rate-limit by IP in nginx if it becomes a bill, rather than
+   adding auth that would mean issuing a token before sign-in.
+2. **The dashboard shows the tissue summary but not the per-class breakdown.**
+   The app renders it and `tissue_json` already stores it, so this is a
+   presentation task whenever a clinician wants the probabilities.
+3. **`200003 necrosis` diverges 0.166 against a 0.107 threshold margin.** It
+   cannot change today's headline because necrosis leads the severity order, but
+   on another wound a class could cross. The suite prints the headroom every run.
+4. **Wound photographs are not stored**, and `/analyse` deliberately does not
+   keep the image it is given. Upload was built and reverted — see the app repo's
+   tracker. If it comes back, **retention and honouring a withdrawal without
+   hand-written SQL need solving first**.
+
+### The rule that is easiest to break
+
+The tissue severity order `necrosis > slough > granulation > callus > epithelial`
+**must stay identical in three places**: `TISSUE_SEVERITY` in
+`inference/pipeline.py`, `WoundScan::TISSUE_SEVERITY`, and
+`TissueFinding.severityOrder` in the app. Each says so in a comment. Change one
+and the two modes start describing the same wound differently — which is the
+exact bug the parity suite exists to catch.
+
+---
+
 ## Done
 
 ### F1 — model manifest and Range-capable delivery ✅
