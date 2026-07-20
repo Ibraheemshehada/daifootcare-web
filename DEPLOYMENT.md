@@ -140,15 +140,40 @@ sha256sum storage/app/models/*        # compare locally
 
 ```bash
 sudo apt update
-sudo apt install -y nginx php8.3-fpm php8.3-{mbstring,xml,curl,zip,sqlite3,bcmath} \
-                    composer git
+sudo apt install -y nginx php8.3-fpm php8.3-{mbstring,xml,curl,zip,mysql,bcmath} \
+                    composer git mysql-server
 
 # Node belongs on the server, not just on your laptop: public/build is
 # gitignored, so `npm run build` below has to run here. Ubuntu's packaged node
 # is too old for Vite 7.
 curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
 sudo apt install -y nodejs
+```
 
+### Create the database
+
+**utf8mb4, not utf8.** Arabic works under either, but a 4-byte character — an
+emoji in an appointment note, which the app allows — is rejected by 3-byte utf8
+with an error that blames the column rather than the charset. Verified locally:
+Arabic and emoji both round-trip intact under utf8mb4.
+
+```bash
+sudo mysql_secure_installation
+
+sudo mysql -e "
+CREATE DATABASE diafootcare CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+CREATE USER 'diafootcare'@'localhost' IDENTIFIED BY 'a-real-password';
+GRANT ALL PRIVILEGES ON diafootcare.* TO 'diafootcare'@'localhost';
+FLUSH PRIVILEGES;"
+```
+
+The application user is deliberately not root and is scoped to one database: a
+SQL injection that gets past Laravel should not also be able to read every other
+database on the box.
+
+### Then the application
+
+```bash
 cd /var/www/diafootcare
 composer install --no-dev --optimize-autoloader
 
@@ -163,8 +188,14 @@ APP_ENV=production
 APP_DEBUG=false                       # leave this false; see the note below
 APP_URL=https://your-domain
 
-DB_CONNECTION=sqlite                  # or mysql for anything beyond a pilot
-# For sqlite: touch database/database.sqlite and use its absolute path.
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=diafootcare
+DB_USERNAME=diafootcare
+DB_PASSWORD=the-password-you-set-below
+DB_CHARSET=utf8mb4
+DB_COLLATION=utf8mb4_unicode_ci
 
 SESSION_DRIVER=database
 CACHE_STORE=database

@@ -67,6 +67,42 @@ wound.** The nginx checks in `DEPLOYMENT.md` §4 stopped being a nicety.
    tracker. If it comes back, **retention and honouring a withdrawal without
    hand-written SQL need solving first**.
 
+### The database is MySQL now
+
+Converted from SQLite and verified against a live MySQL/MariaDB server, not
+reasoned about. `.env.example` and `DEPLOYMENT.md` §3 both target MySQL, and the
+database creation step is written out with the `utf8mb4` charset spelled out.
+
+What was checked, with a real server and real mobile-shaped payloads:
+
+| | |
+|---|---|
+| All migrations, from scratch | run clean |
+| Laravel test suite | passes |
+| `devices/register`, `wound-scans/sync`, `sync/*`, `auth/guest` | all answer correctly |
+| `tissue_json` round trip | intact, and the derived accessors still resolve |
+| Arabic **and 4-byte emoji** | survive intact under utf8mb4 |
+| Idempotent re-sync | 3 replays of one scan still yields 1 row |
+| Datetimes | `2026-03-15T07:45:30Z` in, same instant out, app timezone UTC |
+| Over-long field | 422 from validation, not a 500 from strict mode |
+
+**The one real behavioural change: foreign keys are now enforced.** SQLite
+ignored them by default; MySQL rejects a `wound_scan` whose `patient_id` does
+not exist. Nothing in the app relies on writing orphans, and a `user` delete now
+genuinely cascades to patients, devices and scans — which it silently did not
+before.
+
+Two notes that are not MySQL's doing but surfaced while testing it:
+
+- **The sync upsert is destructive for omitted fields.** A record that arrives
+  without `tissue_json` sets that column to NULL rather than leaving it. The app
+  always sends the full mapped record so this does not bite in practice, but a
+  partial payload would quietly erase findings.
+- The local dev database was SQLite and still exists at
+  `database/database.sqlite`, with the old `.env` saved as `.env.sqlite.bak`.
+  The device-test data in it was **not** migrated — it is throwaway test data,
+  and the MySQL database starts from `DemoSeeder`.
+
 ### The rule that is easiest to break
 
 The tissue severity order `necrosis > slough > granulation > callus > epithelial`
