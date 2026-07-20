@@ -8,8 +8,14 @@ read together, because most of what follows is one contract split across them.
 
 ## START HERE — handoff for 2026-07-20
 
-**The server side of Phase 3 is complete.** Nothing here blocks tomorrow's work,
-which is F6 in the app repo (removing the models from the APK).
+**Phase 3 is feature-complete on both sides.** F6 landed in the app repo: the
+models are out of the APK, so the release build went 284.8 MB to 86.7 MB
+universal, and ~30 MB for the single ABI a phone installs.
+
+That makes this server the *only* source of the models. Nothing here changed for
+it, but the consequence is worth stating plainly: **if the model endpoints are
+down or misconfigured, a new offline-mode install has no way to analyse a
+wound.** The nginx checks in `DEPLOYMENT.md` §4 stopped being a nicety.
 
 ### If you are deploying
 
@@ -52,7 +58,11 @@ which is F6 in the app repo (removing the models from the APK).
 3. **`200003 necrosis` diverges 0.166 against a 0.107 threshold margin.** It
    cannot change today's headline because necrosis leads the severity order, but
    on another wound a class could cross. The suite prints the headroom every run.
-4. **Wound photographs are not stored**, and `/analyse` deliberately does not
+4. **A phone that finishes a download now switches itself to offline mode**, and
+   reports `mode=offline` on its next `devices/register` or mode update. Expect
+   the dashboard's online/offline split to drift toward offline over a cohort's
+   first weeks; that is the app following the files, not a bug.
+5. **Wound photographs are not stored**, and `/analyse` deliberately does not
    keep the image it is given. Upload was built and reverted — see the app repo's
    tracker. If it comes back, **retention and honouring a withdrawal without
    hand-written SQL need solving first**.
