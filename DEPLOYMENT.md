@@ -26,6 +26,79 @@ you will exhaust the pool and the whole API stops responding.
 
 ---
 
+## 1b. Which VPS plan to buy
+
+Sized from measurements taken on this project, not from a rule of thumb.
+
+### What it actually needs
+
+| Component | Measured | Note |
+|---|---|---|
+| Inference sidecar, **LiteRT** | **629 MB** resident, 4 models loaded | recommended runtime |
+| Inference sidecar, **full TensorFlow** | **~960 MB** resident | what `requirements.txt` installs by default |
+| One analysis | **~1.1 s** | on a desktop CPU; expect 2–4× on a shared vCPU |
+| Model files on disk | **208 MB** | plus the app, vendor dir and OS |
+| Per offline install | **208 MB** of egress | the only large bandwidth item |
+
+The models cost more in RAM than on disk (611 MB vs 208 MB) because the fp16
+weights expand to float32 in memory, plus tensor arenas. That is the single
+biggest number in the budget.
+
+Everything else is ordinary: nginx ~50 MB, php-fpm a few hundred MB, SQLite
+nothing, MySQL ~400 MB if you use it. **Total working set: roughly 1.2–1.6 GB.**
+
+### The plans
+
+| Plan | vCPU | RAM | NVMe | Bandwidth | Promo → renewal |
+|---|---|---|---|---|---|
+| KVM 1 | 1 | 4 GB | 50 GB | 4 TB | $6.49 → $11.99 /mo |
+| **KVM 2** | **2** | **8 GB** | **100 GB** | **8 TB** | **$8.79 → $14.99 /mo** |
+| KVM 4 | 4 | 16 GB | 200 GB | 16 TB | $12.99 → $28.99 /mo |
+| KVM 8 | 8 | 32 GB | 400 GB | 32 TB | $25.99 → $49.99 /mo |
+
+### Recommendation: **KVM 2**
+
+**RAM is not the binding constraint — vCPU is.** Even KVM 1's 4 GB comfortably
+holds a 1.6 GB working set. But an analysis pins a core for a second or more,
+and on a single-vCPU box that same core is also running nginx, php-fpm and the
+database. One patient analysing a wound would make the dashboard stutter for
+everyone else.
+
+KVM 2's second core lets inference run without starving the web app. 8 GB leaves
+room to run full TensorFlow if switching to LiteRT turns out to be a nuisance.
+
+**Bandwidth is not the constraint at all**, which is worth saying because 208 MB
+per install sounds alarming. At that size, 4 TB is roughly **19,000** offline
+installs and 8 TB about **38,000**. A pilot of 200 patients uses ~41 GB — one
+percent of the smallest plan. Do not buy bandwidth you will not use.
+
+**KVM 4 and above are not justified** by anything measured here. Move up only if
+concurrent online analyses become the bottleneck, and you will see that as queue
+time on `/api/v1/analyse` before you feel it anywhere else.
+
+### When KVM 1 would genuinely do
+
+If almost everyone chooses offline mode, the server does almost no inference — it
+serves 208 MB once per patient and then handles small sync requests. That is a
+1 vCPU job.
+
+This is likely to become the normal case: **a phone that finishes a download now
+switches itself to offline automatically**, so the mode split drifts that way
+over a cohort's first weeks. Starting on KVM 1 and moving up if the analyse
+endpoint gets busy is a defensible way to spend less — the VPS provider allows upgrades,
+and nothing in this deployment is pinned to a machine size.
+
+Buying KVM 2 up front is buying certainty, not capacity.
+
+### Two things that are not about the plan
+
+- **Bandwidth is per month and resets.** A manifest version change makes *every*
+  offline phone re-download 208 MB, so do not change model files casually — see §7.
+- **Take the snapshot** before the first real patient. Rebuilding the sidecar,
+  nginx range config and model upload from scratch is an afternoon.
+
+---
+
 ## 2. What to upload
 
 | What | Where it goes | Notes |
