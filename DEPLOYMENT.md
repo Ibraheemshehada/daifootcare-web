@@ -143,6 +143,12 @@ sudo apt update
 sudo apt install -y nginx php8.3-fpm php8.3-{mbstring,xml,curl,zip,sqlite3,bcmath} \
                     composer git
 
+# Node belongs on the server, not just on your laptop: public/build is
+# gitignored, so `npm run build` below has to run here. Ubuntu's packaged node
+# is too old for Vite 7.
+curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash -
+sudo apt install -y nodejs
+
 cd /var/www/diafootcare
 composer install --no-dev --optimize-autoloader
 
