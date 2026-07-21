@@ -88,9 +88,27 @@ What was checked, with a real server and real mobile-shaped payloads:
 
 **The one real behavioural change: foreign keys are now enforced.** SQLite
 ignored them by default; MySQL rejects a `wound_scan` whose `patient_id` does
-not exist. Nothing in the app relies on writing orphans, and a `user` delete now
-genuinely cascades to patients, devices and scans — which it silently did not
-before.
+not exist, and a `user` delete now genuinely cascades to patients, devices and
+scans — which it silently did not before.
+
+**This needs no fix, and specifically does not need a device fingerprint.**
+Checked rather than assumed:
+
+- `patient_id` is never taken from the request body. It is resolved from the
+  authenticated user (`$user->patient()`), which is what stops one device filing
+  scans against another person's chart.
+- A **guest gets a real patient record**. `POST /auth/guest` returns
+  `patient_id`, and a guest sync of a wound scan returns 200 — verified against
+  MySQL with foreign keys live.
+- So there is no orphan to accommodate. The enforcement is catching a class of
+  bug that cannot currently occur, which is what you want from a constraint.
+
+**A MAC address would not help and cannot be used.** Android 6+ returns
+`02:00:00:00:00:00` to apps, and Play policy forbids non-resettable hardware IDs
+for tracking. The app already documents this in `DeviceService` and uses an
+app-scoped UUID v4 instead, which is Google's own recommendation and disappears
+on uninstall — which is what a participant would expect. `device_uuid` already
+does every job a MAC address was being considered for.
 
 Two notes that are not MySQL's doing but surfaced while testing it:
 
