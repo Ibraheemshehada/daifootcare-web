@@ -133,8 +133,47 @@ npm ci --silent && npm run build --silent
 ok "dashboard built"
 
 php artisan config:cache && php artisan route:cache
-chown -R www-data:www-data storage bootstrap/cache 2>/dev/null || true
-ok "caches warmed, permissions set"
+# CloudPanel runs php-fpm as the SITE user. Chowning to www-data gave a 500
+# with no log line to explain it, because the log itself was unwritable.
+OWNER=www-data
+if [ "$CLOUDPANEL" = 1 ]; then
+    OWNER=$(stat -c '%U' "$APP_DIR")
+fi
+chown -R "${OWNER}:${OWNER}" storage bootstrap/cache 2>/dev/null || true
+ok "caches warmed, owned by ${OWNER}"
+
+# --------------------------------------------------------- CloudPanel vhost ---
+if [ "$CLOUDPANEL" = 1 ]; then
+    say "CloudPanel vhost"
+    SITE_OWNER=$(stat -c '%U' "$APP_DIR")
+    DOMAIN_GUESS=$(basename "$APP_DIR")
+    VHOST="/etc/nginx/sites-enabled/${DOMAIN_GUESS}.conf"
+
+    if [ -f "$VHOST" ]; then
+        # CloudPanel points the root at the site directory; Laravel serves from
+        # public/, and everything above it — .env, vendor, storage — must never
+        # be reachable over HTTP.
+        if grep -q "root ${APP_DIR};" "$VHOST"; then
+            cp "$VHOST" "${VHOST}.bak.$(date +%s)"
+            sed -i "s#root ${APP_DIR};#root ${APP_DIR}/public;#g" "$VHOST"
+            ok "vhost root moved to public/"
+        else
+            ok "vhost root already correct"
+        fi
+
+        # Let's Encrypt writes its challenge to the site root, which nginx no
+        # longer serves once the root is public/. The symlink keeps both true.
+        mkdir -p "${APP_DIR}/.well-known"
+        ln -sfn "${APP_DIR}/.well-known" "${APP_DIR}/public/.well-known"
+        chown -h "${SITE_OWNER}:${SITE_OWNER}" "${APP_DIR}/public/.well-known"
+        chown -R "${SITE_OWNER}:${SITE_OWNER}" "${APP_DIR}/.well-known"
+        ok "acme-challenge path linked into public/"
+
+        nginx -t >/dev/null 2>&1 && systemctl reload nginx && ok "nginx reloaded"
+    else
+        warn "No vhost at $VHOST — create the site in CloudPanel first."
+    fi
+fi
 
 # ------------------------------------------------------- inference sidecar ---
 say "Inference sidecar"
@@ -148,13 +187,17 @@ cd "$APP_DIR/inference"
                            numpy opencv-python-headless pillow ai-edge-litert
 ok "python deps (LiteRT, not full TensorFlow)"
 
+# Must be the user that owns the files, or systemd fails with CHDIR denied.
+SVC_USER=www-data
+[ "$CLOUDPANEL" = 1 ] && SVC_USER=$(stat -c '%U' "$APP_DIR")
+
 cat > /etc/systemd/system/dfc-inference.service <<UNIT
 [Unit]
 Description=DiaFootCare inference sidecar
 After=network.target
 
 [Service]
-User=www-data
+User=${SVC_USER}
 WorkingDirectory=${APP_DIR}/inference
 Environment=DFC_MODELS_DIR=${APP_DIR}/storage/app/models
 # 127.0.0.1 is load-bearing. This service runs the models and authenticates

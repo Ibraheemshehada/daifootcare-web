@@ -6,16 +6,61 @@ read together, because most of what follows is one contract split across them.
 
 ---
 
-## START HERE — handoff for 2026-07-20
+## START HERE — DEPLOYED AND LIVE
 
-**Phase 3 is feature-complete on both sides.** F6 landed in the app repo: the
-models are out of the APK, so the release build went 284.8 MB to 86.7 MB
-universal, and ~30 MB for the single ABI a phone installs.
+**https://<your-domain> is live**, with a valid Let's Encrypt certificate,
+on a the VPS provider KVM 2 running Ubuntu 24.04 + CloudPanel at <VPS_IP>.
 
-That makes this server the *only* source of the models. Nothing here changed for
-it, but the consequence is worth stating plainly: **if the model endpoints are
-down or misconfigured, a new offline-mode install has no way to analyse a
-wound.** The nginx checks in `DEPLOYMENT.md` §4 stopped being a nicety.
+Verified end to end on the live server, not locally:
+
+| | |
+|---|---|
+| `https://<your-domain>` | 200, valid cert |
+| Manifest | 6 files, 199 MB, version `59ddd0882a04` |
+| **Range request** | **206 Partial Content** — the one that mattered |
+| Split-and-rejoined download | byte-identical, so resume works |
+| Path traversal `../.env` | 404 |
+| All six model files | sha256 identical to local |
+| Analysis of a real wound photo | `Necrosis / High Risk / 6.15 x 4.27 cm` in 1115 ms — matching the local parity fixture exactly |
+| Unauthenticated `/analyse` | 401 |
+| `devices/register`, `wound-scans/sync`, `auth/guest` | 200 / 200 / 201 |
+| Sidecar | active, 461 MB resident under LiteRT |
+| Test data | removed — 0 users in the database |
+
+The **release APK is built** against `https://<your-domain>/api/v1`, verified
+by scanning the binary. arm64 is 30.5 MB.
+
+### Five things CloudPanel broke, all now fixed in `deploy/bootstrap.sh`
+
+Recorded because a redeploy would hit every one of them again:
+
+1. **CloudPanel owns nginx, MySQL and PHP-FPM.** The original script would have
+   `apt install mysql-server` beside CloudPanel's own — the way a working panel
+   gets broken. It now detects CloudPanel and installs only what is missing.
+2. **The vhost root pointed at the repo, not `public/`.** Laravel served a 403,
+   and `.env` would have been reachable over HTTP.
+3. **`chown www-data` gave a silent 500.** CloudPanel runs php-fpm as the *site*
+   user, so www-data could not even write the log that would have explained it.
+4. **Let's Encrypt failed with 404** after the root moved to `public/`: CloudPanel
+   writes the ACME challenge to the site root, which nginx no longer served. A
+   symlink keeps both paths true.
+5. **The sidecar died with `status=200/CHDIR`** — `User=www-data` against a
+   directory owned by the site user.
+
+Plus one of mine: `pipeline.py` imported `tensorflow` while the script installs
+`ai-edge-litert`. It now accepts either.
+
+### Still to do
+
+- **Two stale Cloudflare A records** (`172.64.53.7`, `172.64.52.164`) are served
+  for `<your-domain>` alongside the correct one, and return HTTP 409. Roughly
+  one request in three hits them. Let's Encrypt happened to reach the right IP,
+  but this should be cleaned up in hPanel — find where the domain is still
+  connected to the VPS provider's parking service.
+- **Disable password SSH.** Root currently accepts a password on a public IP.
+  A key is installed and working, so `PasswordAuthentication no` is safe.
+- **Credentials** are in `/root/.diafootcare-credentials` (chmod 600). Copy them
+  into a password manager and delete the file.
 
 ### If you are deploying
 
