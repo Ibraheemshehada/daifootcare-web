@@ -118,12 +118,36 @@ infection_ischaemia_head_meta.json       691
 tissue_head_meta.json                    313
 ```
 
-Upload them with rsync so an interrupted transfer resumes rather than restarts:
+Upload them so an interrupted transfer resumes rather than restarts. On Linux or
+macOS:
 
 ```bash
 rsync -avP --partial storage/app/models/ \
   user@your-vps:/var/www/diafootcare/storage/app/models/
 ```
+
+**On Windows there is usually no rsync.** Git Bash ships `ssh` and `scp` but not
+`rsync` — checked on the development machine, which has neither. Use sftp's
+`reput`, which resumes where `put` would start over:
+
+```bash
+sftp user@your-vps
+  cd /var/www/diafootcare/storage/app/models
+  lcd storage/app/models
+  reput clip_backbone_fp16.tflite          # 175 MB — the one that matters
+  reput tissue_head.tflite
+  reput model1_wound_fp16.tflite
+  reput infection_ischaemia_head.tflite
+  reput infection_ischaemia_head_meta.json
+  reput tissue_head_meta.json
+  bye
+```
+
+`scp storage/app/models/* user@your-vps:...` also works and is simpler, but a
+dropped connection means re-sending that whole file.
+
+Either way, the `sha256sum` comparison below is what actually proves the upload
+was clean. 175 MB over a home connection is exactly the size that fails quietly.
 
 Then confirm the server sees exactly what you sent — the manifest's checksums
 are computed from these files, so a truncated upload becomes a checksum failure
@@ -137,6 +161,30 @@ sha256sum storage/app/models/*        # compare locally
 ---
 
 ## 3. Server setup
+
+### The short way
+
+Most of this section and §8 is now a script. On the VPS, once the repo is
+cloned:
+
+```bash
+cd /var/www/diafootcare
+sudo bash deploy/bootstrap.sh
+```
+
+It installs the packages, creates the utf8mb4 database and a scoped user,
+configures the app, generates a fresh `APP_KEY`, migrates, builds the dashboard,
+and installs the inference sidecar under systemd. It is safe to re-run, and it
+prompts for the database password rather than taking it as an argument — an
+argument would sit in your shell history and in `ps` output while it ran.
+
+It deliberately stops short of the two steps that need judgement: **the model
+upload** (§2) and **nginx** (§4). Read on for those, and for what the script is
+doing if you would rather do it by hand.
+
+### The long way
+
+
 
 ```bash
 sudo apt update
