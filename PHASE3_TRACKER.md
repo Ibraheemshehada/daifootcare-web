@@ -50,6 +50,21 @@ Recorded because a redeploy would hit every one of them again:
 Plus one of mine: `pipeline.py` imported `tensorflow` while the script installs
 `ai-edge-litert`. It now accepts either.
 
+### Landing page and APK distribution
+
+`https://<your-domain>` now offers the app directly:
+
+- **Android** — a universal APK at `/downloads/diafootcare-latest.apk`, served
+  by nginx, verified byte-identical to the build. The size is on the button and
+  the extra ~200 MB for offline analysis is in the note, so both are known
+  before tapping rather than after.
+- **iOS** — an inert button reading "not yet", rather than hidden. Someone
+  holding an iPhone is better served by a clear answer than by silence.
+- The favicon set is generated from the app's own icon.
+
+`deploy/UPDATING.md` documents the incremental update path: `git push vps main`
+sends only changed files, then rebuild the dashboard on the server.
+
 ### Still to do
 
 - **Two stale Cloudflare A records** (`172.64.53.7`, `172.64.52.164`) are served
