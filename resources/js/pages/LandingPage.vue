@@ -21,6 +21,11 @@ const shots = [
 
 const { t, locale } = useI18n();
 
+// Served as a static file by nginx rather than through PHP: a 30 MB download
+// should not occupy a php-fpm worker for its whole duration. Kept as one
+// constant so a new build does not mean hunting through the template.
+const androidUrl = '/downloads/diafootcare-latest.apk';
+
 const scrolled = ref(false);
 const onScroll = () => (scrolled.value = window.scrollY > 8);
 onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }));
@@ -168,7 +173,7 @@ const accentClasses = {
                             size="xl"
                             color="neutral"
                             variant="outline"
-                            to="#how"
+                            to="#get-the-app"
                             :label="t('landing.cta_secondary')"
                         />
                     </motion.div>
@@ -267,6 +272,66 @@ const accentClasses = {
                         </p>
                     </motion.div>
                 </div>
+            </div>
+        </section>
+
+        <!-- ── Get the app ─────────────────────────────────────── -->
+        <section id="get-the-app" class="scroll-mt-16 px-5 py-20 sm:py-24">
+            <div class="mx-auto max-w-3xl text-center">
+                <motion.h2
+                    v-bind="rise(0)"
+                    class="text-3xl font-semibold tracking-tight text-slate-900 sm:text-4xl dark:text-white"
+                >
+                    {{ t('landing.get_title') }}
+                </motion.h2>
+
+                <motion.p
+                    v-bind="rise(0.08)"
+                    class="mx-auto mt-4 max-w-xl text-lg leading-relaxed text-slate-600 dark:text-slate-300"
+                >
+                    {{ t('landing.get_body') }}
+                </motion.p>
+
+                <motion.div
+                    v-bind="rise(0.16)"
+                    class="mt-10 flex flex-col items-stretch justify-center gap-4 sm:flex-row sm:items-center"
+                >
+                    <!-- Android: a direct APK, because this is a study build and
+                         not a Play listing. The size is stated up front rather
+                         than discovered on a metered connection. -->
+                    <a
+                        :href="androidUrl"
+                        class="group flex items-center justify-center gap-3 rounded-xl bg-slate-900 px-6 py-4 text-white transition hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100"
+                        download
+                    >
+                        <UIcon name="i-lucide-smartphone" class="size-6 shrink-0" />
+                        <span class="text-start">
+                            <span class="block text-xs opacity-70">{{ t('landing.get_android_kicker') }}</span>
+                            <span class="block text-base font-semibold">{{ t('landing.get_android') }}</span>
+                        </span>
+                    </a>
+
+                    <!-- iOS is deliberately inert, not hidden. Saying "not yet"
+                         is more use to someone holding an iPhone than a button
+                         that silently does nothing. -->
+                    <span
+                        class="flex cursor-not-allowed items-center justify-center gap-3 rounded-xl border border-slate-200 px-6 py-4 text-slate-400 dark:border-slate-700 dark:text-slate-500"
+                        :aria-disabled="true"
+                    >
+                        <UIcon name="i-lucide-apple" class="size-6 shrink-0" />
+                        <span class="text-start">
+                            <span class="block text-xs opacity-70">{{ t('landing.get_ios_kicker') }}</span>
+                            <span class="block text-base font-semibold">{{ t('landing.get_ios') }}</span>
+                        </span>
+                    </span>
+                </motion.div>
+
+                <motion.p
+                    v-bind="rise(0.24)"
+                    class="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-slate-500 dark:text-slate-400"
+                >
+                    {{ t('landing.get_note') }}
+                </motion.p>
             </div>
         </section>
 

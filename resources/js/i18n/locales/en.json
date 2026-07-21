@@ -195,7 +195,14 @@
     "shot_history_alt": "The wound photo history screen showing 5 entries, 82 percent overall improvement and a healing trend graph.",
     "shot_selfcare_title": "Daily self-care",
     "shot_selfcare_body": "The five checks that decide whether an ulcer heals, tracked day by day.",
-    "shot_selfcare_alt": "The daily self-care screen showing an 80 percent completion ring and a checklist of five foot-care tasks."
+    "shot_selfcare_alt": "The daily self-care screen showing an 80 percent completion ring and a checklist of five foot-care tasks.",
+    "get_title": "Get the app",
+    "get_body": "DiaFootCare runs on your phone. Take a photo of the wound and it measures the size and describes the tissue — on the phone itself, or on our server if you prefer not to download the analysis files.",
+    "get_android": "Download for Android",
+    "get_android_kicker": "APK, about 87 MB",
+    "get_ios": "iPhone — not yet",
+    "get_ios_kicker": "Coming later",
+    "get_note": "Android installs from a file rather than the Play Store, because this is a study build. Your phone will ask you to allow it once. Choosing offline analysis downloads about 200 MB more, one time — the app tells you before it starts."
   },
   "notfound": {
     "title": "Page not found",
