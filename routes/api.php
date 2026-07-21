@@ -105,6 +105,7 @@ Route::prefix('v1')->group(function () {
             // granting roles is a different privilege from reading charts.
             Route::middleware('admin')->group(function () {
                 Route::get('users', [OperationsController::class, 'users']);
+                Route::post('users', [OperationsController::class, 'createUser']);
                 Route::patch('users/{user}/role', [OperationsController::class, 'updateRole']);
             });
         });

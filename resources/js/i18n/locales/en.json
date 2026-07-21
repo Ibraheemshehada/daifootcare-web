@@ -336,7 +336,13 @@
     "role_patient": "Patient",
     "you": "You",
     "change_role": "Change role for {name}",
-    "empty": "No users found."
+    "empty": "No users found.",
+    "add": "Add a user",
+    "create": "Create user",
+    "created": "Created {email}. Give them the password over a secure channel — it is not shown again.",
+    "password_hint": "At least 12 characters",
+    "password_note": "You set the password. Send it to them securely; it is never shown again here.",
+    "admin_warning": "An admin can see every patient record and can change anyone’s role, including yours."
   },
   "export": {
     "title": "Export",

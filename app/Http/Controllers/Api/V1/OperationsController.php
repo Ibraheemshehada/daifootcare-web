@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
 use App\Models\Device;
+use App\Models\Patient;
 use App\Models\SyncLog;
 use App\Models\User;
 use App\Models\WoundScan;
@@ -83,6 +84,53 @@ class OperationsController extends Controller
             ->paginate($request->integer('per_page', 25));
 
         return response()->json($users);
+    }
+
+    /**
+     * Create a user. Admin-only — the same privilege as granting a role.
+     *
+     * Exists so a study can add a second admin or a clinician without anyone
+     * opening a database console, which is how ad-hoc SQL ends up being run
+     * against live patient data.
+     */
+    public function createUser(Request $request): JsonResponse
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:120'],
+            'email' => ['required', 'email', 'max:190', 'unique:users,email'],
+            // Long rather than ornate: a length floor resists guessing better
+            // than a symbol requirement, which mostly produces "Password1!".
+            'password' => ['required', 'string', 'min:12', 'max:200'],
+            'role' => ['required', Rule::in([User::ROLE_ADMIN, User::ROLE_DOCTOR, User::ROLE_PATIENT])],
+            'locale' => ['nullable', 'string', 'in:en,ar'],
+        ]);
+
+        $user = DB::transaction(function () use ($data) {
+            $user = User::create([
+                'name' => $data['name'],
+                'email' => $data['email'],
+                'password' => $data['password'],
+                'locale' => $data['locale'] ?? 'en',
+            ]);
+
+            // role is deliberately not mass-assignable, so a registration
+            // request cannot promote itself. Set it explicitly.
+            $user->forceFill(['role' => $data['role']])->save();
+
+            // A patient with no Patient row cannot sync anything: the sync
+            // endpoints resolve the owning patient from the user and return 422
+            // when there is none. Creating it here means the account works when
+            // it is handed over, instead of failing on the first scan.
+            if ($data['role'] === User::ROLE_PATIENT) {
+                Patient::firstOrCreate(['user_id' => $user->id]);
+            }
+
+            return $user;
+        });
+
+        return response()->json([
+            'user' => $user->only(['id', 'name', 'email', 'role', 'locale']),
+        ], 201);
     }
 
     /**
