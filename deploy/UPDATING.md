@@ -94,7 +94,17 @@ ssh dfc 'cd /home/<site-user>/htdocs/<your-domain> \
 Then compare `sha256sum` on both sides. The manifest checksums come from these
 files, so a truncated upload becomes a verification failure on every phone.
 
-## Ownership — the thing that keeps biting
+## Ownership — now handled automatically
+
+A `post-receive` hook on the server runs `chown -R <site-user>:<site-user>`
+after every push, because a push arrives as root and CloudPanel runs php-fpm as
+the site user. This was needed manually after every single deploy before the
+hook existed, and the symptoms never pointed at the cause.
+
+If you ever recreate the server repo, recreate the hook — it lives at
+`.git/hooks/post-receive` and is not itself version-controlled.
+
+## Ownership — the symptoms, if the hook is ever missing
 
 CloudPanel runs php-fpm as **`diafootcare`**, not `www-data`. Anything written
 as root breaks something later, and the symptoms are misleading:
