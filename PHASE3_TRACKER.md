@@ -65,17 +65,38 @@ Plus one of mine: `pipeline.py` imported `tensorflow` while the script installs
 `deploy/UPDATING.md` documents the incremental update path: `git push vps main`
 sends only changed files, then rebuild the dashboard on the server.
 
+### Server hardening and DNS — done
+
+- **Password SSH is disabled**, verified both directions: key auth works on a
+  fresh connection, password auth is refused. Note it had to be changed in *two*
+  files — `/etc/ssh/sshd_config.d/50-cloud-init.conf` also set it, and a drop-in
+  wins, so editing only `sshd_config` looks successful and changes nothing.
+  Backups are on the server as `*.bak.<timestamp>`.
+- **Consequences**: the VPS provider's browser terminal no longer works, and
+  `~/.ssh/<your-key>` is now the only way in. Back that key up.
+- **The root password was changed** and the generated credentials file has been
+  removed from the server.
+- **DNS is clean.** The two Cloudflare A records that returned 409 were stale
+  parking entries and cleared on their own; all four sources — both
+  authoritative nameservers, Google and Cloudflare — now return only
+  <VPS_IP>. Twelve consecutive requests to the site: twelve 200s.
+
 ### Still to do
 
-- **Two stale Cloudflare A records** (`172.64.53.7`, `172.64.52.164`) are served
-  for `<your-domain>` alongside the correct one, and return HTTP 409. Roughly
-  one request in three hits them. Let's Encrypt happened to reach the right IP,
-  but this should be cleaned up in hPanel — find where the domain is still
-  connected to the VPS provider's parking service.
-- **Disable password SSH.** Root currently accepts a password on a public IP.
-  A key is installed and working, so `PasswordAuthentication no` is safe.
-- **Credentials** are in `/root/.diafootcare-credentials` (chmod 600). Copy them
-  into a password manager and delete the file.
+Nothing blocking. Remaining backlog, none of which stops a pilot:
+
+- **Background download** — the model transfer stops when the app leaves the
+  foreground, because Android reclaims the Flutter engine under memory pressure.
+  Resume means nothing is lost but time. An Android foreground service is the
+  recommended fix; see the app repo's tracker.
+- **Mandatory consent** — accepting is still required to use the app during the
+  study period. An ethics board will ask about this.
+- **Laravel test coverage is thin** (2 tests). The endpoints are verified by hand
+  and by the app, but there is no regression net.
+- **The dashboard shows a tissue summary, not the per-class probabilities.**
+  `tissue_json` stores them and the app renders them; presentation only.
+- **`_backfillMissingUuids` passes a null `whereArgs`** in the app — sqflite warns
+  it will throw in a future version.
 
 ### If you are deploying
 
