@@ -32,3 +32,9 @@ Thumbs.db
 # where they cannot be removed.
 /inference/testdata/*
 !/inference/testdata/.gitkeep
+
+# Any .env backup. One of these was committed with a live APP_KEY during the
+# MySQL conversion — the pattern, not just the one filename, is what needs
+# ignoring.
+.env.*.bak
+.env.bak
