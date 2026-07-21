@@ -59,11 +59,26 @@ class DashboardController extends Controller
             'series' => $series,
             // Ordered by severity, so the chart reads as a ranking rather than an
             // arbitrary key.
+            // NULL-safe on purpose. These columns are nullable — an older
+            // client, or one that could not read a finding, sends null — and
+            // `where('x', false)` does not match NULL in SQL. Every band
+            // therefore dropped those rows and the whole distribution read
+            // zero while scans plainly existed. Treating "not reported" as
+            // "not flagged" also keeps the four bands summing to the scan
+            // total, so a reader can trust the numbers add up.
             'risk_distribution' => [
-                'high' => WoundScan::where('infection_present', true)->where('ischaemia_present', true)->count(),
-                'infection' => WoundScan::where('infection_present', true)->where('ischaemia_present', false)->count(),
-                'ischaemia' => WoundScan::where('ischaemia_present', true)->where('infection_present', false)->count(),
-                'normal' => WoundScan::where('infection_present', false)->where('ischaemia_present', false)->count(),
+                'high' => WoundScan::where('infection_present', true)
+                    ->where('ischaemia_present', true)->count(),
+                'infection' => WoundScan::where('infection_present', true)
+                    ->where(fn ($q) => $q->where('ischaemia_present', false)
+                        ->orWhereNull('ischaemia_present'))->count(),
+                'ischaemia' => WoundScan::where('ischaemia_present', true)
+                    ->where(fn ($q) => $q->where('infection_present', false)
+                        ->orWhereNull('infection_present'))->count(),
+                'normal' => WoundScan::where(fn ($q) => $q->where('infection_present', false)
+                        ->orWhereNull('infection_present'))
+                    ->where(fn ($q) => $q->where('ischaemia_present', false)
+                        ->orWhereNull('ischaemia_present'))->count(),
             ],
         ]);
     }
