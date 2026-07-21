@@ -160,6 +160,39 @@ function applyTitle(route) {
     document.title = key ? `${i18n.global.t(key)} — ${name}` : name;
 }
 
+/**
+ * Recover from a deploy that happened while someone had the page open.
+ *
+ * Vite empties the build directory, so each deploy deletes the previous
+ * chunks. A browser holding a cached index.html then asks for a hash that no
+ * longer exists, the dynamic import rejects, and the route never renders — the
+ * already-loaded shell stays on screen with an empty content area, which looks
+ * exactly like a broken or unauthorised dashboard. This was reported by real
+ * users after a series of deploys.
+ *
+ * Reloading fetches fresh HTML with the current hashes and lands them on the
+ * page they asked for. The sessionStorage flag stops a genuinely missing chunk
+ * from becoming a reload loop.
+ */
+router.onError((error, to) => {
+    const looksLikeStaleChunk = /dynamically imported module|Importing a module script failed|Failed to fetch/i
+        .test(error?.message ?? '');
+
+    if (!looksLikeStaleChunk) return;
+
+    const KEY = 'dfc_chunk_reload';
+    if (sessionStorage.getItem(KEY)) {
+        sessionStorage.removeItem(KEY);
+        return; // already tried; let the error surface rather than loop
+    }
+
+    sessionStorage.setItem(KEY, '1');
+    window.location.assign(to?.fullPath ?? window.location.pathname);
+});
+
+// A successful navigation means whatever we reloaded for is resolved.
+router.afterEach(() => sessionStorage.removeItem('dfc_chunk_reload'));
+
 router.afterEach(applyTitle);
 
 // The title also has to follow a language switch. `afterEach` alone only fires

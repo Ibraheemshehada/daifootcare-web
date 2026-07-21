@@ -50,7 +50,18 @@ return [
     |
     */
 
-    'expiration' => null,
+    /*
+     * Minutes until a token stops working. Was null — tokens never expired, so
+     * a browser someone had once signed in on stayed signed in permanently, and
+     * a device handed to a colleague showed them the dashboard.
+     *
+     * 60 days rather than a working shift, because the *mobile* app uses these
+     * same tokens and is offline-first: expiring a patient's session while they
+     * have no signal leaves them unable to log back in, which is a worse
+     * failure than a stale session on a browser. The dashboard's real answer to
+     * a shared device is the "sign out everywhere" control, not a short clock.
+     */
+    'expiration' => (int) env('SANCTUM_EXPIRATION_MINUTES', 60 * 24 * 60),
 
     /*
     |--------------------------------------------------------------------------
