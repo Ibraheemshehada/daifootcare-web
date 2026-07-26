@@ -26,6 +26,20 @@ const { t, locale } = useI18n();
 // constant so a new build does not mean hunting through the template.
 const androidUrl = '/downloads/diafootcare-latest.apk';
 
+// Version metadata is fetched from a file written next to the APK at upload
+// time, so what the page shows always matches the file actually served — no
+// template edit is needed when a new build goes up. Silent on failure: a
+// missing version line is better than a broken page.
+const appVersion = ref(null);
+onMounted(async () => {
+    try {
+        const res = await fetch('/downloads/version.json', { cache: 'no-store' });
+        if (res.ok) appVersion.value = await res.json();
+    } catch {
+        /* leave the version line hidden */
+    }
+});
+
 const scrolled = ref(false);
 const onScroll = () => (scrolled.value = window.scrollY > 8);
 onMounted(() => window.addEventListener('scroll', onScroll, { passive: true }));
@@ -326,9 +340,21 @@ const accentClasses = {
                     </span>
                 </motion.div>
 
+                <!-- Version line, populated from version.json served beside the
+                     APK. Hidden until it loads so nothing flickers or lies. -->
+                <p
+                    v-if="appVersion"
+                    class="mt-5 text-xs text-slate-500 tabular-nums dark:text-slate-400"
+                >
+                    {{ t('landing.version_label') }}
+                    {{ appVersion.version }}<template v-if="appVersion.build"> ({{ appVersion.build }})</template>
+                    · {{ appVersion.size_mb }} MB
+                    <template v-if="appVersion.updated"> · {{ appVersion.updated }}</template>
+                </p>
+
                 <motion.p
                     v-bind="rise(0.24)"
-                    class="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-slate-500 dark:text-slate-400"
+                    class="mx-auto mt-4 max-w-xl text-sm leading-relaxed text-slate-500 dark:text-slate-400"
                 >
                     {{ t('landing.get_note') }}
                 </motion.p>

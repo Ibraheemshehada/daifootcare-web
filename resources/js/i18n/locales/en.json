@@ -202,7 +202,8 @@
     "get_android_kicker": "APK, about 87 MB",
     "get_ios": "iPhone — not yet",
     "get_ios_kicker": "Coming later",
-    "get_note": "Android installs from a file rather than the Play Store, because this is a study build. Your phone will ask you to allow it once. Choosing offline analysis downloads about 200 MB more, one time — the app tells you before it starts."
+    "get_note": "Android installs from a file rather than the Play Store, because this is a study build. Your phone will ask you to allow it once. Choosing offline analysis downloads about 200 MB more, one time — the app tells you before it starts.",
+    "version_label": "Version"
   },
   "notfound": {
     "title": "Page not found",
