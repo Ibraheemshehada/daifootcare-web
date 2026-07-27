@@ -99,6 +99,9 @@ class AnalysisResult:
     def to_json(self) -> dict:
         d = asdict(self)
         d['tissue_findings'] = [f.to_json() for f in self.tissue_findings]
+        # `area` is the canonical key the app reads; `area_cm2` is kept for
+        # backward compatibility with any existing consumer.
+        d['area'] = self.area_cm2
         return d
 
 
