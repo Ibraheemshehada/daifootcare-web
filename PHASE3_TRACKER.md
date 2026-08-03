@@ -9,7 +9,7 @@ read together, because most of what follows is one contract split across them.
 ## START HERE — DEPLOYED AND LIVE
 
 **https://<your-domain> is live**, with a valid Let's Encrypt certificate,
-on a the VPS provider KVM 2 running Ubuntu 24.04 + CloudPanel at <VPS_IP>.
+on a VPS running Ubuntu 24.04 + CloudPanel.
 
 Verified end to end on the live server, not locally:
 
@@ -72,14 +72,14 @@ sends only changed files, then rebuild the dashboard on the server.
   files — `/etc/ssh/sshd_config.d/50-cloud-init.conf` also set it, and a drop-in
   wins, so editing only `sshd_config` looks successful and changes nothing.
   Backups are on the server as `*.bak.<timestamp>`.
-- **Consequences**: the VPS provider's browser terminal no longer works, and
+- **Consequences**: the provider browser terminal no longer works, and
   `~/.ssh/<your-key>` is now the only way in. Back that key up.
 - **The root password was changed** and the generated credentials file has been
   removed from the server.
 - **DNS is clean.** The two Cloudflare A records that returned 409 were stale
   parking entries and cleared on their own; all four sources — both
   authoritative nameservers, Google and Cloudflare — now return only
-  <VPS_IP>. Twelve consecutive requests to the site: twelve 200s.
+  The server answered. Twelve consecutive requests to the site: twelve 200s.
 
 ### Still to do
 

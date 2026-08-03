@@ -67,7 +67,7 @@ parity suite, the Vite build, and every endpoint the app calls.
 
 ## The immediate task
 
-Deploy to a the VPS provider VPS (**KVM 2** recommended — see `DEPLOYMENT.md` §1b for
+Deploy to a VPS (**2 vCPU / 8 GB** recommended — see `DEPLOYMENT.md` §1b for
 why, sized from measured memory and CPU, not a rule of thumb).
 
 Follow `DEPLOYMENT.md` in order. Two things it will not tell you:

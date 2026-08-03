@@ -85,7 +85,7 @@ serves 208 MB once per patient and then handles small sync requests. That is a
 This is likely to become the normal case: **a phone that finishes a download now
 switches itself to offline automatically**, so the mode split drifts that way
 over a cohort's first weeks. Starting on KVM 1 and moving up if the analyse
-endpoint gets busy is a defensible way to spend less — the VPS provider allows upgrades,
+endpoint gets busy is a defensible way to spend less — the provider allows upgrades,
 and nothing in this deployment is pinned to a machine size.
 
 Buying KVM 2 up front is buying certainty, not capacity.

@@ -1,6 +1,6 @@
 # Deploying onto the CloudPanel VPS
 
-The target is a the VPS provider **KVM 2** running **Ubuntu 24.04 with CloudPanel**.
+The target is a VPS running **Ubuntu 24.04 with CloudPanel**.
 That changes `DEPLOYMENT.md` in one important way, and makes the browser
 genuinely useful for part of the work.
 
@@ -29,7 +29,7 @@ Browser and shell each do what they are actually good at.
 
 ### In CloudPanel's UI — a browser can do all of this
 
-Reachable at `https://<server-ip>:8443`. This is **not** the the VPS provider hPanel,
+Reachable at `https://<server-ip>:8443`. This is **not** the provider hosting panel,
 which is a billing panel and correctly off limits.
 
 1. **Add a site.** Sites → Add Site → PHP site, PHP **8.3**. Note the site user
@@ -44,7 +44,7 @@ which is a billing panel and correctly off limits.
 ### Over SSH — needs a terminal
 
 ```bash
-ssh root@<VPS_IP>
+ssh <user>@<VPS_IP>
 
 # Clone into the site's document root. Use the path CloudPanel created.
 cd /home/<site-user>/htdocs/<domain>
@@ -60,7 +60,7 @@ Then upload the models — 208 MB, not in git:
 ```bash
 # From the development machine. sftp, because Windows has no rsync and
 # `reput` resumes where `put` would restart the 175 MB backbone.
-sftp root@<VPS_IP>
+sftp <user>@<VPS_IP>
   cd /home/<site-user>/htdocs/<domain>/storage/app/models
   lcd storage/app/models
   reput clip_backbone_fp16.tflite
@@ -77,7 +77,7 @@ becomes a checksum failure on every patient's phone, and you would debug it from
 the wrong end:
 
 ```bash
-ssh root@<VPS_IP> 'cd /home/<site-user>/htdocs/<domain>/storage/app/models && sha256sum *'
+ssh <user>@<VPS_IP> 'cd /home/<site-user>/htdocs/<domain>/storage/app/models && sha256sum *'
 sha256sum storage/app/models/*     # compare, locally
 ```
 

@@ -1,7 +1,7 @@
 # Updating the live site
 
 The server is `<your-domain>` at `<VPS_IP>`, Ubuntu 24.04 + CloudPanel.
-Site root: `/home/<site-user>/htdocs/<your-domain>`.
+Site root: `/home/<site-user>/htdocs/<domain>`.
 
 **You do not re-upload the project.** A git remote points at the server, so a
 push sends only what changed — usually a few kilobytes.
@@ -19,7 +19,7 @@ git push vps main             # the server
 The remote is configured as:
 
 ```bash
-git remote add vps ssh://dfc/home/<site-user>/htdocs/<your-domain>
+git remote add vps ssh://<vps>/home/<site-user>/htdocs/<domain>
 export GIT_SSH_COMMAND="ssh -i ~/.ssh/<your-key> -o IdentitiesOnly=yes"
 ```
 
@@ -32,7 +32,7 @@ updates the working tree in place.
 The built dashboard is gitignored, so it has to be rebuilt **on the server**:
 
 ```bash
-ssh dfc 'cd /home/<site-user>/htdocs/<your-domain> \
+ssh <vps> 'cd /home/<site-user>/htdocs/<domain> \
   && sudo -u diafootcare npm run build \
   && sudo -u diafootcare php artisan config:cache \
   && sudo -u diafootcare php artisan view:clear'
@@ -41,7 +41,7 @@ ssh dfc 'cd /home/<site-user>/htdocs/<your-domain> \
 ### After a push that touched `inference/pipeline.py`
 
 ```bash
-ssh dfc 'systemctl restart dfc-inference'
+ssh <vps> 'systemctl restart dfc-inference'
 ```
 
 It loads the models and the module once at startup and will otherwise keep
@@ -55,10 +55,10 @@ flutter build apk --release --dart-define=API_BASE_URL=https://<your-domain>/api
 
 scp -i ~/.ssh/<your-key> -o IdentitiesOnly=yes \
   build/app/outputs/flutter-apk/app-release.apk \
-  root@<VPS_IP>:/home/<site-user>/htdocs/<your-domain>/public/downloads/diafootcare-latest.apk
+  <user>@<VPS_IP>:/home/<site-user>/htdocs/<domain>/public/downloads/diafootcare-latest.apk
 
-ssh dfc 'chown -R <site-user>:<site-user> \
-  /home/<site-user>/htdocs/<your-domain>/public/downloads'
+ssh <vps> 'chown -R <site-user>:<site-user> \
+  /home/<site-user>/htdocs/<domain>/public/downloads'
 ```
 
 The universal APK is served, not the per-ABI splits: one file that works on any
@@ -83,9 +83,9 @@ re-download 200 MB, so it is not a casual act.
 
 ```bash
 scp -i ~/.ssh/<your-key> -o IdentitiesOnly=yes storage/app/models/* \
-  root@<VPS_IP>:/home/<site-user>/htdocs/<your-domain>/storage/app/models/
+  <user>@<VPS_IP>:/home/<site-user>/htdocs/<domain>/storage/app/models/
 
-ssh dfc 'cd /home/<site-user>/htdocs/<your-domain> \
+ssh <vps> 'cd /home/<site-user>/htdocs/<domain> \
   && chown -R <site-user>:<site-user> storage/app/models \
   && sudo -u diafootcare php artisan cache:clear \
   && systemctl restart dfc-inference'
@@ -118,7 +118,7 @@ as root breaks something later, and the symptoms are misleading:
 The fix is always the same:
 
 ```bash
-ssh dfc 'chown -R <site-user>:<site-user> /home/<site-user>/htdocs/<your-domain>'
+ssh <vps> 'chown -R <site-user>:<site-user> /home/<site-user>/htdocs/<domain>'
 ```
 
 ## Verifying after any change
@@ -130,7 +130,7 @@ curl -sI -r 0-99 https://<your-domain>/api/v1/models/file/tissue_head.tflite
 #   ^ MUST be 206. A 200 means ranges broke and every resumed download
 #     refetches from zero, silently, while the app looks fine.
 curl -sI https://<your-domain>/downloads/diafootcare-latest.apk     # 200
-ssh dfc 'systemctl is-active dfc-inference'                            # active
+ssh <vps> 'systemctl is-active dfc-inference'                            # active
 ```
 
 A browser cache will happily show you the old page after a deploy. Check the
