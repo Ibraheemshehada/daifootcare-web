@@ -23,7 +23,7 @@ git remote add vps ssh://<vps>/home/<site-user>/htdocs/<domain>
 export GIT_SSH_COMMAND="ssh -i ~/.ssh/<your-key> -o IdentitiesOnly=yes"
 ```
 
-`dfc` is an alias in `~/.ssh/config` pointing at the VPS with the deploy key.
+`<vps>` is an alias in `~/.ssh/config` pointing at the VPS with the deploy key.
 The server repo has `receive.denyCurrentBranch = updateInstead`, so a push
 updates the working tree in place.
 
