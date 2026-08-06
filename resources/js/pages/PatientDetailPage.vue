@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useApiResource } from '@/composables/useApiResource';
@@ -36,6 +36,25 @@ const cards = computed(() => [
 ]);
 
 /** Newest-first from the API; a chart reads left-to-right oldest-first. */
+/**
+ * The scan opened in the viewer, or null when it is closed.
+ *
+ * Holds the scan object rather than an id so the dialog can render immediately
+ * from data the table already has — the photograph is the only thing that needs
+ * fetching, and it streams in behind its own loading state.
+ */
+const openedScan = ref(null);
+
+/**
+ * Wound photographs are on the server's private disk, so they are read through
+ * the authorising endpoint rather than a public path — see WoundScan::$hidden.
+ */
+const imageUrl = (scan) => `/api/v1/wound-scans/${scan.local_uuid}/image`;
+
+function openScan(scan) {
+    openedScan.value = scan;
+}
+
 const glucoseSeries = computed(() =>
     [...(record.value.glucose ?? [])].reverse().map((g) => ({ x: g.measured_at, y: g.value_mgdl }))
 );
@@ -154,6 +173,7 @@ const medBand = (v) => (v === null ? 'neutral' : v >= 80 ? 'success' : v >= 50 ?
                     <table class="w-full min-w-[40rem] text-sm">
                         <thead class="border-b border-slate-200 dark:border-slate-800">
                             <tr class="text-xs uppercase tracking-wide text-slate-600 dark:text-slate-400">
+                                <th class="px-4 py-3 text-start font-medium">{{ t('scans.photo') }}</th>
                                 <th class="px-4 py-3 text-start font-medium">{{ t('scans.captured') }}</th>
                                 <th class="px-4 py-3 text-start font-medium">{{ t('scans.size') }}</th>
                                 <th class="px-4 py-3 text-start font-medium">{{ t('scans.area') }}</th>
@@ -161,7 +181,36 @@ const medBand = (v) => (v === null ? 'neutral' : v >= 80 ? 'success' : v >= 50 ?
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
-                            <tr v-for="s in record.wound_scans.slice(0, 10)" :key="s.id">
+                            <!--
+                                The whole row opens the scan, not just the
+                                thumbnail: a clinician reading the numbers and
+                                deciding they want to see the wound should not
+                                have to go back and find a 48px target.
+                            -->
+                            <tr v-for="s in record.wound_scans.slice(0, 10)" :key="s.id"
+                                class="cursor-pointer transition hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                                tabindex="0"
+                                role="button"
+                                :aria-label="t('scans.viewPhoto')"
+                                @click="openScan(s)"
+                                @keydown.enter.prevent="openScan(s)"
+                                @keydown.space.prevent="openScan(s)">
+                                <td class="px-4 py-3">
+                                    <!-- Served through the API, never a public
+                                         URL: the file is on the private disk
+                                         because a wound image tied to a named
+                                         patient must not be reachable by
+                                         guessing a path. -->
+                                    <img v-if="s.local_uuid && s.has_image"
+                                         :src="imageUrl(s)"
+                                         :alt="t('scans.photo')"
+                                         loading="lazy"
+                                         class="h-12 w-12 rounded-lg border border-slate-200 object-cover dark:border-slate-700" />
+                                    <span v-else
+                                          class="flex h-12 w-12 items-center justify-center rounded-lg border border-dashed border-slate-300 text-xs text-slate-400 dark:border-slate-700">
+                                        —
+                                    </span>
+                                </td>
                                 <td class="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-300">
                                     {{ d(new Date(s.captured_at), 'short') }}
                                 </td>
@@ -188,6 +237,76 @@ const medBand = (v) => (v === null ? 'neutral' : v >= 80 ? 'success' : v >= 50 ?
                     </table>
                 </div>
                 <p v-else class="text-sm text-slate-600 dark:text-slate-400">{{ t('scans.empty') }}</p>
+
+                <!--
+                    Scan viewer. The photograph and the numbers the model
+                    produced from it belong on one screen: reading "0.9 cm" is a
+                    different act when you can see the wound it came from.
+                -->
+                <UModal v-model:open="openedScan" :title="t('scans.viewPhoto')">
+                    <template #content>
+                        <div v-if="openedScan" class="p-5">
+                            <div class="flex items-start justify-between gap-4">
+                                <div>
+                                    <h3 class="text-base font-semibold text-slate-900 dark:text-white">
+                                        {{ d(new Date(openedScan.captured_at), 'long') }}
+                                    </h3>
+                                    <p class="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                                        {{ t(`scans.source_${openedScan.source ?? 'offline'}`) }}
+                                    </p>
+                                </div>
+                                <UButton icon="i-lucide-x" variant="ghost" color="neutral"
+                                         :aria-label="t('common.close')"
+                                         @click="openedScan = null" />
+                            </div>
+
+                            <img v-if="openedScan.local_uuid && openedScan.has_image"
+                                 :src="imageUrl(openedScan)"
+                                 :alt="t('scans.photo')"
+                                 class="mt-4 max-h-[55vh] w-full rounded-xl border border-slate-200 object-contain dark:border-slate-700" />
+                            <p v-else
+                               class="mt-4 rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700">
+                                {{ t('scans.no_photo') }}
+                            </p>
+
+                            <dl class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+                                <div>
+                                    <dt class="text-xs text-slate-500 dark:text-slate-400">{{ t('scans.size') }}</dt>
+                                    <dd class="text-sm tabular-nums text-slate-900 dark:text-white">
+                                        {{ (!openedScan.length_cm && !openedScan.width_cm) ? t('scans.no_wound')
+                                            : `${openedScan.length_cm?.toFixed(1)} × ${openedScan.width_cm?.toFixed(1)} cm` }}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt class="text-xs text-slate-500 dark:text-slate-400">{{ t('scans.area') }}</dt>
+                                    <dd class="text-sm tabular-nums text-slate-900 dark:text-white">
+                                        {{ openedScan.area_cm2 ? `${openedScan.area_cm2.toFixed(2)} cm²` : '—' }}
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt class="text-xs text-slate-500 dark:text-slate-400">{{ t('scans.risk') }}</dt>
+                                    <dd class="mt-0.5">
+                                        <UBadge :color="riskColor(openedScan.risk_badge)" variant="subtle"
+                                                :label="t(`risk.${openedScan.risk_badge ?? 'unknown'}`)" />
+                                    </dd>
+                                </div>
+                                <div>
+                                    <dt class="text-xs text-slate-500 dark:text-slate-400">{{ t('scans.tissue') }}</dt>
+                                    <dd class="text-sm text-slate-900 dark:text-white">
+                                        {{ openedScan.tissue_summary || '—' }}
+                                    </dd>
+                                </div>
+                            </dl>
+
+                            <!-- Measurements are uncalibrated unless a scale
+                                 reference was in frame, so the absolute figures
+                                 above carry a caveat the trend does not. -->
+                            <p class="mt-4 text-xs text-slate-500 dark:text-slate-400">
+                                {{ t('scans.measure_caveat') }}
+                            </p>
+                        </div>
+                    </template>
+                </UModal>
             </section>
 
             <!-- ── Medications + well-being ──────────────────────── -->
