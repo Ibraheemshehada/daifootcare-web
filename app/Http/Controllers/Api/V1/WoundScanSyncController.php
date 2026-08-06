@@ -10,6 +10,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Throwable;
 
@@ -168,4 +169,137 @@ class WoundScanSyncController extends Controller
 
         return response()->json($scans);
     }
+
+    /**
+     * Receive the photograph for a scan the device has already synced.
+     *
+     * Separate from sync() on purpose. sync() upserts batches of small JSON
+     * rows; a photograph is megabytes of multipart that has to succeed or fail
+     * on its own, and putting one inside a fifty-row batch would let a single
+     * large upload fail forty-nine unrelated records.
+     *
+     * Keyed by local_uuid — the same identifier the record sync uses — and
+     * scoped to the authenticated patient, so a device can only ever attach an
+     * image to its own scan. A scan that has not synced yet returns 404, which
+     * the client treats as "retry later" rather than as a permanent failure.
+     *
+     * Images are written to the PRIVATE disk, never public storage: a wound
+     * photograph linked to an identified patient must not be reachable by
+     * guessing a URL. Reading one goes through image() below, which checks the
+     * caller first.
+     */
+    public function storeImage(Request $request, string $localUuid): JsonResponse
+    {
+        $request->validate([
+            // 12 MB covers a full-resolution phone photograph. Explicit mime
+            // list rather than "image": the analysis pipeline reads these, and
+            // accepting anything decodable invites files it cannot use.
+            'image' => ['required', 'file', 'max:12288', 'mimes:jpg,jpeg,png,heic,heif'],
+        ]);
+
+        $user = $request->user();
+        $patient = $user?->patient()->first();
+
+        if (! $patient) {
+            return response()->json([
+                'message' => 'This account has no patient record to attach images to.',
+            ], 422);
+        }
+
+        $scan = WoundScan::where('local_uuid', $localUuid)
+            ->where('patient_id', $patient->id)
+            ->first();
+
+        if (! $scan) {
+            // The record has not arrived yet, or belongs to someone else. Both
+            // are 404 deliberately: telling an unauthorised caller that a scan
+            // exists but is not theirs leaks that it exists.
+            return response()->json([
+                'message' => 'No scan with that identifier for this patient.',
+            ], 404);
+        }
+
+        try {
+            // Replacing an image (a device retrying after a partial failure)
+            // must not leave the previous file orphaned on disk.
+            if ($scan->image_path && Storage::disk('local')->exists($scan->image_path)) {
+                Storage::disk('local')->delete($scan->image_path);
+            }
+
+            $path = $request->file('image')->store(
+                "wound-scans/{$patient->id}",
+                'local'
+            );
+
+            $scan->update(['image_path' => $path]);
+
+            Log::info('wound scan image stored', [
+                'local_uuid' => $localUuid,
+                'patient_id' => $patient->id,
+                'bytes' => $request->file('image')->getSize(),
+            ]);
+
+            return response()->json([
+                'message' => 'Image stored.',
+                'local_uuid' => $localUuid,
+            ], 201);
+        } catch (Throwable $e) {
+            Log::error('wound scan image failed', [
+                'local_uuid' => $localUuid,
+                'error' => $e->getMessage(),
+            ]);
+
+            return response()->json(['message' => 'Could not store the image.'], 500);
+        }
+    }
+
+    /**
+     * Stream a stored wound photograph to an authorised viewer.
+     *
+     * The file lives on the private disk, so this is the only way to read it.
+     * A clinician or admin may view any patient's scan; a patient may view only
+     * their own. Anything else is 404 rather than 403 — an unauthorised caller
+     * should not learn that the scan exists.
+     */
+    public function image(Request $request, string $localUuid)
+    {
+        $user = $request->user();
+
+        $scan = WoundScan::where('local_uuid', $localUuid)->first();
+
+        if (! $scan || ! $scan->image_path) {
+            return response()->json(['message' => 'Not found.'], 404);
+        }
+
+        // isClinician() is the check the rest of this controller uses for
+        // "may see any patient's chart"; reuse it rather than inventing a
+        // second, subtly different notion of staff.
+        $isStaff = $user && $user->isClinician();
+
+        if (! $isStaff) {
+            $patient = $user?->patient()->first();
+            if (! $patient || $scan->patient_id !== $patient->id) {
+                return response()->json(['message' => 'Not found.'], 404);
+            }
+        }
+
+        if (! Storage::disk('local')->exists($scan->image_path)) {
+            // The row says there is an image but the file is gone. Say so
+            // plainly instead of returning a broken stream the dashboard would
+            // render as a corrupt image.
+            Log::warning('wound scan image missing on disk', [
+                'local_uuid' => $localUuid,
+                'path' => $scan->image_path,
+            ]);
+
+            return response()->json(['message' => 'Image file is missing.'], 410);
+        }
+
+        return Storage::disk('local')->response(
+            $scan->image_path,
+            null,
+            ['Cache-Control' => 'private, max-age=3600']
+        );
+    }
+
 }

@@ -36,7 +36,19 @@ class WoundScan extends Model
     protected $appends = [
         'primary_tissue_type',
         'tissue_summary',
+        // Whether a photograph exists. The dashboard needs to know that without
+        // being handed image_path: that is a server filesystem path, and
+        // shipping it to every client would leak the storage layout for nothing.
+        'has_image',
     ];
+
+    /**
+     * image_path never leaves the server. Reading an image goes through
+     * WoundScanSyncController::image(), which authorises the caller first.
+     *
+     * @var list<string>
+     */
+    protected $hidden = ['image_path'];
 
     protected function casts(): array
     {
@@ -144,5 +156,10 @@ class WoundScan extends Model
     public function device(): BelongsTo
     {
         return $this->belongsTo(Device::class);
+    }
+
+    public function getHasImageAttribute(): bool
+    {
+        return ! empty($this->attributes['image_path'] ?? null);
     }
 }

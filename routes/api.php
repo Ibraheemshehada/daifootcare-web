@@ -68,6 +68,14 @@ Route::prefix('v1')->group(function () {
 
         Route::get('wound-scans', [WoundScanSyncController::class, 'index']);
 
+        // The photograph uploads separately from the record: one multipart
+        // request per image, keyed by the same local_uuid the batch sync uses.
+        Route::post('wound-scans/{localUuid}/image', [WoundScanSyncController::class, 'storeImage']);
+
+        // Images live on the private disk, so this is the only way to read one.
+        // Authorisation is checked inside the controller.
+        Route::get('wound-scans/{localUuid}/image', [WoundScanSyncController::class, 'image']);
+
         // Everything else the app records: glucose, medications, medication-logs,
         // self-care, qol, satisfaction, appointments, sus, engagement, consents.
         // One route, one idempotent code path — see HealthRecordSyncController.

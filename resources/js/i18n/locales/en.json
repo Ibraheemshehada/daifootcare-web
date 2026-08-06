@@ -115,7 +115,10 @@
     "source": "Source",
     "empty": "No scans have synced yet.",
     "no_wound": "No wound detected",
-    "tissue": "Tissue"
+    "tissue": "Tissue",
+    "photo": "Photo",
+    "viewPhoto": "Open full size",
+    "noPhoto": "No photograph uploaded"
   },
   "risk": {
     "normal": "Normal",
@@ -200,8 +203,8 @@
     "get_body": "DiaFootCare runs on your phone. Take a photo of the wound and it measures the size and describes the tissue — on the phone itself, or on our server if you prefer not to download the analysis files.",
     "get_android": "Download for Android",
     "get_android_kicker": "APK, about 87 MB",
-    "get_ios": "iPhone — not yet",
-    "get_ios_kicker": "Coming later",
+    "get_ios": "iPhone — via TestFlight",
+    "get_ios_kicker": "Install for iOS",
     "get_note": "Android installs from a file rather than the Play Store, because this is a study build. Your phone will ask you to allow it once. Choosing offline analysis downloads about 200 MB more, one time — the app tells you before it starts.",
     "version_label": "Version"
   },

@@ -38,3 +38,11 @@ Thumbs.db
 # ignoring.
 .env.*.bak
 .env.bak
+
+# Local pre-edit backups
+/_backups/
+
+# Local python venv and bytecode for the inference service
+inference/.venv/
+inference/__pycache__/
+**/__pycache__/

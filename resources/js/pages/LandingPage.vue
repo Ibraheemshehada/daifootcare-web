@@ -26,6 +26,11 @@ const { t, locale } = useI18n();
 // constant so a new build does not mean hunting through the template.
 const androidUrl = '/downloads/diafootcare-latest.apk';
 
+// iOS is distributed through TestFlight for the study period — there is no App
+// Store listing, so this is the only install route for an iPhone. Kept beside
+// androidUrl so both install links live in one place.
+const iosUrl = 'https://testflight.apple.com/join/XDRx6dB3';
+
 // Version metadata is fetched from a file written next to the APK at upload
 // time, so what the page shows always matches the file actually served — no
 // template edit is needed when a new build goes up. Silent on failure: a
@@ -325,19 +330,23 @@ const accentClasses = {
                         </span>
                     </a>
 
-                    <!-- iOS is deliberately inert, not hidden. Saying "not yet"
-                         is more use to someone holding an iPhone than a button
-                         that silently does nothing. -->
-                    <span
-                        class="flex cursor-not-allowed items-center justify-center gap-3 rounded-xl border border-slate-200 px-6 py-4 text-slate-400 dark:border-slate-700 dark:text-slate-500"
-                        :aria-disabled="true"
+                    <!-- iOS goes through TestFlight: this is a study build, so
+                         there is no App Store listing to link to. Opens in a new
+                         tab because TestFlight hands off to Apple's site and
+                         then the TestFlight app, and a patient who taps it
+                         should still have the study page behind them. -->
+                    <a
+                        :href="iosUrl"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        class="group flex items-center justify-center gap-3 rounded-xl border border-slate-200 px-6 py-4 text-slate-900 transition hover:bg-slate-50 dark:border-slate-700 dark:text-white dark:hover:bg-slate-800"
                     >
                         <UIcon name="i-lucide-apple" class="size-6 shrink-0" />
                         <span class="text-start">
                             <span class="block text-xs opacity-70">{{ t('landing.get_ios_kicker') }}</span>
                             <span class="block text-base font-semibold">{{ t('landing.get_ios') }}</span>
                         </span>
-                    </span>
+                    </a>
                 </motion.div>
 
                 <!-- Version line, populated from version.json served beside the
