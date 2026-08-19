@@ -22,6 +22,8 @@ from typing import Optional
 
 import cv2
 import numpy as np
+
+from ring import detect_ring, is_printed_label
 from PIL import Image, ImageOps
 
 # ---------------------------------------------------------------------------
@@ -95,6 +97,12 @@ class AnalysisResult:
     is_from_model: bool
     is_calibrated: bool
     area_cm2: float
+    # What gave the centimetres their units, and how square the camera was.
+    # Both qualify the measurement and neither can be recovered from it later:
+    # without a ring the size is scaled by an assumption, and above 40 degrees
+    # of tilt measured error triples.
+    pixels_per_cm: Optional[float] = None
+    tilt_deg: Optional[float] = None
 
     def to_json(self) -> dict:
         d = asdict(self)
@@ -195,7 +203,18 @@ class WoundAnalyzer:
         count, labels, stats, _ = cv2.connectedComponentsWithStats(m, connectivity=8)
         if count <= 1:
             return 0.0, 0.0, 0.0
-        largest = 1 + int(np.argmax(stats[1:, cv2.CC_STAT_AREA]))
+
+        # Refuse any region that is printed ink on a white card. Without this the
+        # segmenter measures the calibration label itself and returns its 1.5 cm
+        # diameter as the wound size — a wrong number that once agreed with the
+        # clinician exactly, which is the most dangerous kind because nothing
+        # flags it. The device applies the same rule; the two must not disagree.
+        keep = [i for i in range(1, count)
+                if stats[i, cv2.CC_STAT_AREA] >= 10
+                and not is_printed_label(image, (labels == i))]
+        if not keep:
+            return 0.0, 0.0, 0.0
+        largest = max(keep, key=lambda i: stats[i, cv2.CC_STAT_AREA])
         comp = labels == largest
 
         sx, sy = orig_w / n, orig_h / n
@@ -250,6 +269,19 @@ class WoundAnalyzer:
     ) -> AnalysisResult:
         image = _decode(image_bytes)
 
+        # Scale from the printed ring, not from an assumption about how far the
+        # phone was held — the assumption is why a real 1.4 cm wound came back as
+        # 0.9 cm. A client-supplied value still wins, since a phone that already
+        # found the ring has no reason to have it found twice.
+        ring = None
+        if pixels_per_cm is None:
+            try:
+                ring = detect_ring(image)
+            except Exception:  # noqa: BLE001 - a detector fault must not cost
+                ring = None    # the analysis; uncalibrated and flagged is fine
+            if ring is not None:
+                pixels_per_cm = ring.pixels_per_cm
+
         length, width, area = self._segment(image, pixels_per_cm)
 
         emb = self._embedding(image)
@@ -273,6 +305,11 @@ class WoundAnalyzer:
             is_from_model=True,
             is_calibrated=pixels_per_cm is not None,
             area_cm2=area,
+            pixels_per_cm=pixels_per_cm,
+            # How square the camera was. Reported rather than acted on here: the
+            # phone refuses a photograph past 40°, but one already taken and
+            # uploaded is better measured with a caveat than not at all.
+            tilt_deg=ring.tilt_deg if ring is not None else None,
         )
 
 
