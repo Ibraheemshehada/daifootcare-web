@@ -400,8 +400,10 @@
     "no_wound": "No wound found",
     "no_ring": "No label found",
     "tissues": "Tissue types",
-    "tissues_hint": "Every class is shown with its own threshold marked, including those below it.",
+    "tissues_hint": "Every type the model considered, and whether it was found.",
     "infection": "Infection",
-    "ischaemia": "Blood supply"
+    "ischaemia": "Blood supply",
+    "found": "Found",
+    "not_found": "Not found"
   }
 }

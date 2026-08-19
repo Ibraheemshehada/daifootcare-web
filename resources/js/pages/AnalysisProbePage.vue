@@ -48,14 +48,20 @@ const overlaySrc = computed(() =>
         : null,
 );
 
-// Sorted most likely first, and every class is shown - not only the ones that
-// cleared their threshold. The head is multi-label and a wound bed holds several
-// tissues at once, so naming one winner throws away most of the answer; and a
-// class sitting just under its threshold is exactly what someone checking the
-// model wants to see.
+// Found first, then the rest. Every class is listed either way: the head is
+// multi-label and a wound bed holds several tissues at once, so naming one
+// winner throws away most of the answer.
+//
+// The probabilities are deliberately not rendered, here or in the app. "Necrosis
+// 36%" reads as *some necrosis* when it means the model did not find necrosis —
+// a figure under its threshold and one over it look alike, and the sentence that
+// separated them went unread. The numbers are still in the response for anyone
+// reading the API.
 const tissues = computed(() =>
     [...(result.value?.tissue_findings ?? [])].sort(
-        (a, b) => b.probability - a.probability,
+        (a, b) =>
+            Number(b.is_present) - Number(a.is_present) ||
+            b.probability - a.probability,
     ),
 );
 
@@ -153,21 +159,23 @@ const angleTone = computed(() => {
                 <ul class="space-y-1.5">
                     <li v-for="f in tissues" :key="f.type"
                         class="flex items-center gap-3 text-sm">
-                        <span class="w-28 shrink-0 capitalize text-slate-700 dark:text-slate-200">
+                        <UIcon
+                            :name="f.is_present ? 'i-lucide-check-circle-2' : 'i-lucide-minus-circle'"
+                            class="size-4 shrink-0"
+                            :class="f.is_present ? 'text-emerald-600' : 'text-slate-400'" />
+                        <span class="flex-1 capitalize"
+                              :class="f.is_present
+                                  ? 'font-medium text-slate-900 dark:text-white'
+                                  : 'text-slate-500 dark:text-slate-400'">
                             {{ f.type }}
                         </span>
-                        <span class="relative h-2 flex-1 rounded-full bg-slate-200 dark:bg-slate-700">
-                            <span class="absolute inset-y-0 left-0 rounded-full"
-                                  :class="f.is_present ? 'bg-emerald-500' : 'bg-slate-400'"
-                                  :style="{ width: `${Math.round(f.probability * 100)}%` }" />
-                            <!-- Where the threshold sits, so a class just under
-                                 it is visible as "nearly" rather than "no". -->
-                            <span class="absolute inset-y-[-3px] w-px bg-slate-900 dark:bg-white"
-                                  :style="{ left: `${Math.round((f.threshold ?? 0.5) * 100)}%` }" />
-                        </span>
-                        <span class="w-24 shrink-0 text-right tabular-nums text-slate-600 dark:text-slate-300">
-                            {{ (f.probability * 100).toFixed(0) }}%
-                            <span class="text-slate-400">/ {{ ((f.threshold ?? 0.5) * 100).toFixed(0) }}</span>
+                        <!-- The verdict in words as well as an icon: the row
+                             should not depend on reading a glyph. -->
+                        <span class="shrink-0"
+                              :class="f.is_present
+                                  ? 'font-medium text-emerald-700 dark:text-emerald-400'
+                                  : 'text-slate-500 dark:text-slate-400'">
+                            {{ f.is_present ? t('probe.found') : t('probe.not_found') }}
                         </span>
                     </li>
                 </ul>
