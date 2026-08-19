@@ -20,6 +20,7 @@ import math
 from dataclasses import dataclass, asdict
 from typing import Optional
 
+import base64
 import cv2
 import numpy as np
 
@@ -103,6 +104,7 @@ class AnalysisResult:
     # of tilt measured error triples.
     pixels_per_cm: Optional[float] = None
     tilt_deg: Optional[float] = None
+    overlay_jpeg_b64: Optional[str] = None
 
     def to_json(self) -> dict:
         d = asdict(self)
@@ -189,7 +191,7 @@ class WoundAnalyzer:
             # than reporting no wound.
             peak = float(probs.max())
             if peak <= 0:
-                return 0.0, 0.0, 0.0
+                return 0.0, 0.0, 0.0, None
             mask = probs > 0.5 * peak
 
         # Open then close with a 5x5 square, exactly as on the device.
@@ -202,7 +204,7 @@ class WoundAnalyzer:
         # fill, which walks all eight neighbours.
         count, labels, stats, _ = cv2.connectedComponentsWithStats(m, connectivity=8)
         if count <= 1:
-            return 0.0, 0.0, 0.0
+            return 0.0, 0.0, 0.0, None
 
         # Refuse any region that is printed ink on a white card. Without this the
         # segmenter measures the calibration label itself and returns its 1.5 cm
@@ -213,7 +215,7 @@ class WoundAnalyzer:
                 if stats[i, cv2.CC_STAT_AREA] >= 10
                 and not is_printed_label(image, (labels == i))]
         if not keep:
-            return 0.0, 0.0, 0.0
+            return 0.0, 0.0, 0.0, None
         largest = max(keep, key=lambda i: stats[i, cv2.CC_STAT_AREA])
         comp = labels == largest
 
@@ -225,7 +227,7 @@ class WoundAnalyzer:
         major, minor = _pca_extent(px, py)
         area_px = float(comp.sum()) * sx * sy
 
-        return major / ppc, minor / ppc, area_px / (ppc * ppc)
+        return major / ppc, minor / ppc, area_px / (ppc * ppc), comp
 
     # -- model 2 and 3: shared CLIP backbone ------------------------------
 
@@ -282,7 +284,7 @@ class WoundAnalyzer:
             if ring is not None:
                 pixels_per_cm = ring.pixels_per_cm
 
-        length, width, area = self._segment(image, pixels_per_cm)
+        length, width, area, mask = self._segment(image, pixels_per_cm)
 
         emb = self._embedding(image)
         findings = _build_tissue_findings(self._tissue_probs(emb))
@@ -306,6 +308,12 @@ class WoundAnalyzer:
             is_calibrated=pixels_per_cm is not None,
             area_cm2=area,
             pixels_per_cm=pixels_per_cm,
+            # The mask drawn over the photograph, returned to the client rather
+            # than stored here: at analysis time no scan record exists yet to
+            # attach it to. The app saves it beside the photograph and it syncs
+            # by the same path as one rendered on the device, so both modes end
+            # up with the same artefact in the same place.
+            overlay_jpeg_b64=_overlay_b64(image, mask, ring),
             # How square the camera was. Reported rather than acted on here: the
             # phone refuses a photograph past 40°, but one already taken and
             # uploaded is better measured with a caveat than not at all.
@@ -527,3 +535,54 @@ def _healing_progress(area_cm2: float) -> float:
     """
     baseline_area = 100.0
     return min(max((baseline_area - area_cm2) / baseline_area * 100.0, 0.0), 100.0)
+
+
+def _overlay_b64(image: np.ndarray, mask, ring) -> Optional[str]:
+    """The photograph with the measured region drawn on it, as base64 JPEG.
+
+    A size with nothing behind it cannot be checked. Before the model was
+    retrained the segmenter measured the printed calibration label instead of the
+    wound in 16 of 42 small-label photographs, once agreeing with a clinician's
+    own figure by coincidence — and nobody could have seen it. Every wrong
+    conclusion in this project was caught by looking at the mask, not the number.
+
+    Returned inline rather than written to disk: at analysis time there is no
+    scan record yet to attach a file to, and the client already has a path that
+    stores and syncs an overlay. Encoded as JPEG at 900 px, which is a few
+    hundred kilobytes rather than the several megabytes a full-resolution PNG
+    would add to every response on a phone connection.
+    """
+    if mask is None or not mask.any():
+        return None
+
+    try:
+        h, w = image.shape[:2]
+        scale = 900 / max(h, w) if max(h, w) > 900 else 1.0
+        out = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+        if scale < 1.0:
+            out = cv2.resize(out, (int(w * scale), int(h * scale)),
+                             interpolation=cv2.INTER_AREA)
+
+        big = cv2.resize(mask.astype(np.uint8), (out.shape[1], out.shape[0]),
+                         interpolation=cv2.INTER_NEAREST).astype(bool)
+        out[big] = (0.55 * out[big] + 0.45 * np.array([40, 40, 220])).astype(np.uint8)
+        cnts, _ = cv2.findContours(big.astype(np.uint8), cv2.RETR_EXTERNAL,
+                                   cv2.CHAIN_APPROX_SIMPLE)
+        cv2.drawContours(out, cnts, -1, (60, 60, 255), max(2, out.shape[1] // 300))
+
+        # The ring too: a measurement shown without the thing that gave it its
+        # units cannot be checked either.
+        if ring is not None:
+            cv2.ellipse(out,
+                        (int(ring.cx * scale), int(ring.cy * scale)),
+                        (int(ring.major_px * scale / 2), int(ring.minor_px * scale / 2)),
+                        0, 0, 360, (120, 220, 40), max(2, out.shape[1] // 400))
+
+        ok, buf = cv2.imencode('.jpg', out, [int(cv2.IMWRITE_JPEG_QUALITY), 85])
+        if not ok:
+            return None
+        return base64.b64encode(buf.tobytes()).decode('ascii')
+    except Exception:  # noqa: BLE001
+        # An overlay explains a result; it is not part of one. Losing it must
+        # never cost the measurement.
+        return None
