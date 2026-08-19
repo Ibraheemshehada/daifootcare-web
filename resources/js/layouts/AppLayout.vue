@@ -41,7 +41,10 @@ const groups = computed(() => [
         key: 'admin',
         // Hidden entirely for non-admins rather than shown and refused.
         links: auth.user?.role === 'admin'
-            ? [{ name: 'users', label: 'nav.users', icon: 'i-lucide-shield' }]
+            ? [
+                { name: 'users', label: 'nav.users', icon: 'i-lucide-shield' },
+                { name: 'analysis-probe', label: 'nav.probe', icon: 'i-lucide-microscope' },
+              ]
             : [],
     },
 ].filter((g) => g.links.length));

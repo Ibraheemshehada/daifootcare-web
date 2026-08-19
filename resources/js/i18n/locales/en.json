@@ -19,7 +19,8 @@
     "export": "Export",
     "group_clinical": "Clinical",
     "group_operations": "Operations",
-    "group_admin": "Administration"
+    "group_admin": "Administration",
+    "probe": "Test an image"
   },
   "login": {
     "title": "Sign in",
@@ -381,5 +382,26 @@
     "previous": "Previous page",
     "next": "Next page",
     "go_to": "Go to page {n}"
+  },
+  "probe": {
+    "title": "Test an image",
+    "subtitle": "See what the models make of a photograph, without saving anything.",
+    "nothing_saved": "Nothing here is saved. This image is not added to any patient, does not count as an app scan, and is not kept on the server after the result comes back.",
+    "choose": "Choose a photograph",
+    "run": "Analyse",
+    "running": "Analysing…",
+    "failed": "That image could not be analysed.",
+    "mask": "Where the model found the wound",
+    "no_mask": "No outline was produced for this image.",
+    "size": "Size",
+    "area": "Area",
+    "scale": "Scale",
+    "angle": "Camera angle",
+    "no_wound": "No wound found",
+    "no_ring": "No label found",
+    "tissues": "Tissue types",
+    "tissues_hint": "Every class is shown with its own threshold marked, including those below it.",
+    "infection": "Infection",
+    "ischaemia": "Blood supply"
   }
 }

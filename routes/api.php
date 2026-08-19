@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\ExportController;
 use App\Http\Controllers\Api\V1\ModelController;
 use App\Http\Controllers\Api\V1\OperationsController;
 use App\Http\Controllers\Api\V1\AnalysisController;
+use App\Http\Controllers\Api\V1\AnalysisProbeController;
 use App\Http\Controllers\Api\V1\DashboardController;
 use App\Http\Controllers\Api\V1\DeviceController;
 use App\Http\Controllers\Api\V1\GuestController;
@@ -113,6 +114,15 @@ Route::prefix('v1')->group(function () {
             // User administration is admin-only, not merely clinician-only:
             // granting roles is a different privilege from reading charts.
             Route::middleware('admin')->group(function () {
+                // A bench for looking at what the models say about one
+                // photograph. Writes nothing — no scan, no patient, no event —
+                // so checking the model no longer costs a fabricated record in
+                // the study's own data. Rate-limited because each call is a
+                // second of model inference on the same box that serves
+                // patients.
+                Route::post('analysis/probe', [AnalysisProbeController::class, 'probe'])
+                    ->middleware('throttle:20,1');
+
                 Route::get('users', [OperationsController::class, 'users']);
                 Route::post('users', [OperationsController::class, 'createUser']);
                 Route::patch('users/{user}/role', [OperationsController::class, 'updateRole']);

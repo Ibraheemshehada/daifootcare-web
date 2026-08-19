@@ -86,6 +86,15 @@ const routes = [
         meta: { requiresAuth: true, title: 'sync.title' },
     },
     {
+        // A bench for looking at what the models say about one photograph.
+        // Nothing it does is recorded, so it never appears in a patient's
+        // history or in the study's numbers.
+        path: '/analysis-probe',
+        name: 'analysis-probe',
+        component: () => import('@/pages/AnalysisProbePage.vue'),
+        meta: { requiresAuth: true, adminOnly: true, title: 'probe.title' },
+    },
+    {
         path: '/users',
         name: 'users',
         component: () => import('@/pages/UsersPage.vue'),
