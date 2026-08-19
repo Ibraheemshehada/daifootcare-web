@@ -50,6 +50,14 @@ const openedScan = ref(null);
  * the authorising endpoint rather than a public path — see WoundScan::$hidden.
  */
 const imageUrl = (scan) => `/api/v1/wound-scans/${scan.local_uuid}/image`;
+const overlayUrl = (scan) => `/api/v1/wound-scans/${scan.local_uuid}/overlay`;
+
+// Which of the two the dialog is showing. Defaults to the overlay when there is
+// one: a size with nothing behind it cannot be checked, and before the model was
+// retrained the segmenter measured the printed calibration label instead of the
+// wound in 16 of 42 small-label photographs. The plain photograph is one click
+// away for when the mask itself is what is in doubt.
+const showOverlay = ref(true);
 
 function openScan(scan) {
     openedScan.value = scan;
@@ -260,14 +268,52 @@ const medBand = (v) => (v === null ? 'neutral' : v >= 80 ? 'success' : v >= 50 ?
                                          @click="openedScan = null" />
                             </div>
 
-                            <img v-if="openedScan.local_uuid && openedScan.has_image"
-                                 :src="imageUrl(openedScan)"
-                                 :alt="t('scans.photo')"
-                                 class="mt-4 max-h-[55vh] w-full rounded-xl border border-slate-200 object-contain dark:border-slate-700" />
+                            <div v-if="openedScan.local_uuid && openedScan.has_image" class="mt-4">
+                                <div v-if="openedScan.has_overlay" class="mb-2 flex items-center gap-2">
+                                    <UButton size="xs"
+                                             :variant="showOverlay ? 'solid' : 'outline'"
+                                             color="primary"
+                                             :label="t('scans.view_measured')"
+                                             @click="showOverlay = true" />
+                                    <UButton size="xs"
+                                             :variant="showOverlay ? 'outline' : 'solid'"
+                                             color="neutral"
+                                             :label="t('scans.view_photo')"
+                                             @click="showOverlay = false" />
+                                    <span class="text-xs text-slate-500 dark:text-slate-400">
+                                        {{ t('scans.overlay_hint') }}
+                                    </span>
+                                </div>
+                                <img :src="(openedScan.has_overlay && showOverlay)
+                                            ? overlayUrl(openedScan) : imageUrl(openedScan)"
+                                     :alt="t('scans.photo')"
+                                     class="max-h-[55vh] w-full rounded-xl border border-slate-200 object-contain dark:border-slate-700" />
+                            </div>
                             <p v-else
                                class="mt-4 rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700">
                                 {{ t('scans.no_photo') }}
                             </p>
+
+                            <!-- How much the centimetres are worth. A measurement
+                                 from a photograph taken at 47° reads much shorter
+                                 than the wound is, and one taken without the
+                                 printed ring is scaled by an assumption. Both are
+                                 said here rather than left for the reader to
+                                 discover from a number that looks exact. -->
+                            <div v-if="openedScan.capture_angle === 'poor'
+                                       || openedScan.capture_angle === 'marginal'
+                                       || openedScan.is_calibrated === false"
+                                 class="mt-3 flex flex-wrap gap-2">
+                                <UBadge v-if="openedScan.capture_angle === 'poor'"
+                                        color="error" variant="subtle"
+                                        :label="t('scans.angle_poor', { deg: Math.round(openedScan.tilt_deg) })" />
+                                <UBadge v-else-if="openedScan.capture_angle === 'marginal'"
+                                        color="warning" variant="subtle"
+                                        :label="t('scans.angle_marginal', { deg: Math.round(openedScan.tilt_deg) })" />
+                                <UBadge v-if="!openedScan.is_calibrated"
+                                        color="warning" variant="subtle"
+                                        :label="t('scans.not_calibrated')" />
+                            </div>
 
                             <dl class="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
                                 <div>

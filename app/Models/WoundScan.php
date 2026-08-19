@@ -24,6 +24,11 @@ class WoundScan extends Model
         'ischaemia_prob',
         'risk_badge',
         'image_path',
+        // The mask drawn over the photograph, plus the two numbers that qualify
+        // the measurement: what gave it its units, and how square the camera was.
+        'overlay_path',
+        'pixels_per_cm',
+        'tilt_deg',
         'models_version',
         'source',
         'synced_at',
@@ -40,6 +45,9 @@ class WoundScan extends Model
         // being handed image_path: that is a server filesystem path, and
         // shipping it to every client would leak the storage layout for nothing.
         'has_image',
+        'has_overlay',
+        'capture_angle',
+        'is_calibrated',
     ];
 
     /**
@@ -48,7 +56,9 @@ class WoundScan extends Model
      *
      * @var list<string>
      */
-    protected $hidden = ['image_path'];
+    // Both are server filesystem paths; images are read through their
+    // endpoints, which check who is asking.
+    protected $hidden = ['image_path', 'overlay_path'];
 
     protected function casts(): array
     {
@@ -161,5 +171,38 @@ class WoundScan extends Model
     public function getHasImageAttribute(): bool
     {
         return ! empty($this->attributes['image_path'] ?? null);
+    }
+
+    public function getHasOverlayAttribute(): bool
+    {
+        return ! empty($this->attributes['overlay_path'] ?? null);
+    }
+
+    /**
+     * How square the camera was, banded by measured error rather than by round
+     * numbers: below 30° error averages 18%, from 30° to 40% it is 40%, and
+     * above 40° it is 56%. Null when no ring was found, which is a different
+     * thing from a good angle and must not be shown as one.
+     */
+    public function getCaptureAngleAttribute(): ?string
+    {
+        $t = $this->attributes['tilt_deg'] ?? null;
+        if ($t === null) {
+            return null;
+        }
+
+        return $t <= 30 ? 'good' : ($t <= 40 ? 'marginal' : 'poor');
+    }
+
+    /**
+     * Whether the centimetres came from the printed ring or from an assumption.
+     *
+     * Without a ring the app scaled by an assumed frame width, so the number
+     * moved with how far the phone was held — a real 1.4 cm wound was reported
+     * as 0.9 cm for that reason alone.
+     */
+    public function getIsCalibratedAttribute(): bool
+    {
+        return ! empty($this->attributes['pixels_per_cm'] ?? null);
     }
 }

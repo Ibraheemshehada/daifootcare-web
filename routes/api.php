@@ -75,6 +75,7 @@ Route::prefix('v1')->group(function () {
         // Images live on the private disk, so this is the only way to read one.
         // Authorisation is checked inside the controller.
         Route::get('wound-scans/{localUuid}/image', [WoundScanSyncController::class, 'image']);
+        Route::get('wound-scans/{localUuid}/overlay', [WoundScanSyncController::class, 'overlay']);
 
         // Everything else the app records: glucose, medications, medication-logs,
         // self-care, qol, satisfaction, appointments, sus, engagement, consents.

@@ -195,6 +195,11 @@ class WoundScanSyncController extends Controller
             // list rather than "image": the analysis pipeline reads these, and
             // accepting anything decodable invites files it cannot use.
             'image' => ['required', 'file', 'max:12288', 'mimes:jpg,jpeg,png,heic,heif'],
+            // The photograph with the measured region drawn on it. Optional:
+            // scans from before it existed, and any whose overlay failed to
+            // render, must still be able to upload their photograph rather than
+            // being held back by a picture that only explains the result.
+            'overlay' => ['sometimes', 'file', 'max:8192', 'mimes:png,jpg,jpeg'],
         ]);
 
         $user = $request->user();
@@ -231,7 +236,24 @@ class WoundScanSyncController extends Controller
                 'local'
             );
 
-            $scan->update(['image_path' => $path]);
+            $update = ['image_path' => $path];
+
+            // A clinician reading a scan here sees a size in centimetres and,
+            // until now, nothing behind it — no way to tell a correct
+            // measurement from one taken off the printed calibration label,
+            // which happened in 16 of 42 small-label photographs before the
+            // model was retrained. The overlay is that check.
+            if ($request->hasFile('overlay')) {
+                if ($scan->overlay_path && Storage::disk('local')->exists($scan->overlay_path)) {
+                    Storage::disk('local')->delete($scan->overlay_path);
+                }
+                $update['overlay_path'] = $request->file('overlay')->store(
+                    "wound-scans/{$patient->id}",
+                    'local'
+                );
+            }
+
+            $scan->update($update);
 
             Log::info('wound scan image stored', [
                 'local_uuid' => $localUuid,
@@ -297,6 +319,49 @@ class WoundScanSyncController extends Controller
 
         return Storage::disk('local')->response(
             $scan->image_path,
+            null,
+            ['Cache-Control' => 'private, max-age=3600']
+        );
+    }
+
+    /**
+     * The photograph with the measured region drawn on it.
+     *
+     * A separate endpoint rather than a flag on the one above, so a dashboard
+     * can show the two side by side and a client that predates this simply
+     * never asks. The authorisation is deliberately identical: the overlay is
+     * the same patient photograph with a mask over it.
+     */
+    public function overlay(Request $request, string $localUuid)
+    {
+        $user = $request->user();
+
+        $scan = WoundScan::where('local_uuid', $localUuid)->first();
+
+        if (! $scan || ! $scan->overlay_path) {
+            return response()->json(['message' => 'Not found.'], 404);
+        }
+
+        $isStaff = $user && $user->isClinician();
+
+        if (! $isStaff) {
+            $patient = $user?->patient()->first();
+            if (! $patient || $scan->patient_id !== $patient->id) {
+                return response()->json(['message' => 'Not found.'], 404);
+            }
+        }
+
+        if (! Storage::disk('local')->exists($scan->overlay_path)) {
+            Log::warning('wound scan overlay missing on disk', [
+                'local_uuid' => $localUuid,
+                'path' => $scan->overlay_path,
+            ]);
+
+            return response()->json(['message' => 'Overlay file is missing.'], 410);
+        }
+
+        return Storage::disk('local')->response(
+            $scan->overlay_path,
             null,
             ['Cache-Control' => 'private, max-age=3600']
         );
