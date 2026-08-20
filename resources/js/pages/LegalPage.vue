@@ -22,6 +22,17 @@ import { useRoute, RouterLink } from 'vue-router';
 const { t, tm, rt } = useI18n();
 const route = useRoute();
 
+/**
+ * Not in the locale files, and not because it is the same in both languages.
+ *
+ * vue-i18n reserves `@` for its linked-message syntax, so a message containing
+ * a bare email address fails to compile — and the failure is a SyntaxError at
+ * render time that leaves the page blank, with the route resolved and the tab
+ * title correct. It looked like a working page to everything except a person
+ * opening it, which is exactly the failure these pages exist to fix.
+ */
+const contactEmail = 'support@diafootcare.tech';
+
 const page = computed(() => (route.name === 'privacy' ? 'privacy' : 'support'));
 
 // tm() returns the raw message array; rt() resolves each entry. Without rt the
@@ -81,8 +92,8 @@ const sections = computed(() =>
                     {{ t('legal.contact_body') }}
                 </p>
                 <a class="mt-3 inline-block text-base font-medium text-cyan-700 underline dark:text-cyan-400"
-                   :href="`mailto:${t('legal.contact_email')}`">
-                    {{ t('legal.contact_email') }}
+                   :href="`mailto:${contactEmail}`">
+                    {{ contactEmail }}
                 </a>
             </section>
 
