@@ -43,6 +43,14 @@ class WoundScanSyncController extends Controller
             'records.*.area_cm2' => ['nullable', 'numeric', 'min:0', 'max:10000'],
             'records.*.depth_cm' => ['nullable', 'numeric', 'min:0', 'max:100'],
             'records.*.is_calibrated' => ['nullable', 'boolean'],
+            // How the centimetres were arrived at, and how square the camera
+            // was when they were. Without these the dashboard's angle and
+            // calibration badges have nothing to read for any scan taken in the
+            // app - which is every scan a patient takes. A measurement at 45
+            // degrees carries about triple the error of one taken flat, and a
+            // clinician looking at the number deserves to know which they have.
+            'records.*.pixels_per_cm' => ['nullable', 'numeric', 'min:0', 'max:10000'],
+            'records.*.tilt_deg' => ['nullable', 'numeric', 'min:0', 'max:90'],
             // { label, findings[] }. The findings are validated in shape
             // because the dashboard derives a clinical headline from them; a
             // malformed probability would otherwise become a wound described
@@ -103,6 +111,8 @@ class WoundScanSyncController extends Controller
                             'area_cm2' => $record['area_cm2'] ?? null,
                             'depth_cm' => $record['depth_cm'] ?? null,
                             'is_calibrated' => $record['is_calibrated'] ?? false,
+                            'pixels_per_cm' => $record['pixels_per_cm'] ?? null,
+                            'tilt_deg' => $record['tilt_deg'] ?? null,
                             'tissue_json' => $record['tissue_json'] ?? null,
                             'infection_present' => $record['infection_present'] ?? null,
                             'infection_prob' => $record['infection_prob'] ?? null,
