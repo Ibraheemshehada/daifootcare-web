@@ -405,5 +405,132 @@
     "ischaemia": "Blood supply",
     "found": "Found",
     "not_found": "Not found"
+  },
+  "legal": {
+    "contact_heading": "Contact us",
+    "contact_body": "Write to us about anything on this page, or about the app. We answer within three working days.",
+    "contact_email": "support@diafootcare.tech",
+    "nav_home": "Home"
+  },
+  "support": {
+    "title": "Support",
+    "updated": "Last updated 20 August 2026",
+    "intro": "DiaFootCare helps you photograph a diabetic foot ulcer, measure it, and keep the record where your care team can see it. This page covers the questions we are asked most.",
+    "sections": [
+      {
+        "heading": "Getting the app",
+        "body": [
+          "Android: download it from the link on our home page. Your phone will ask you to allow installation from this source the first time; that is normal for an app installed outside the Play Store.",
+          "iPhone and iPad: the app is in review. If you are taking part in the clinical study, your coordinator will send you an invitation."
+        ]
+      },
+      {
+        "heading": "The calibration label",
+        "body": [
+          "The app converts pixels into centimetres using the printed DiaFootCare label placed next to the wound. Without it, sizes cannot be calculated and the app will tell you so rather than guess.",
+          "Labels come from your clinic. Print quality matters: a label that is creased, faded or partly covered may not be recognised. Keep it flat and fully visible, and do not place it on top of the wound."
+        ]
+      },
+      {
+        "heading": "The camera will not let me take the photo",
+        "body": [
+          "That happens when the phone is tilted too far from the wound. At a steep angle the measurement can be off by more than half, and a number that wrong is worse than no number.",
+          "Hold the phone so you are looking straight down at the wound. The bar at the top shows the angle in degrees and turns green when it is close enough. If the printed label is not in view at all, the app cannot judge the angle and will let you take the photo anyway, and that scan is recorded as an estimate."
+        ]
+      },
+      {
+        "heading": "It says no wound was found",
+        "body": [
+          "The app found nothing it recognised as a wound bed. Try again with more even light, the whole wound in frame, and nothing resting over it.",
+          "This can also happen with a very small or a nearly healed wound. If your clinician can see a wound and the app cannot, trust your clinician."
+        ]
+      },
+      {
+        "heading": "The first-time download",
+        "body": [
+          "The analysis runs on your phone, so the app downloads its models the first time you use it, around 200 MB. Use Wi-Fi if you can. It resumes where it stopped if the connection drops, and only needs doing once."
+        ]
+      },
+      {
+        "heading": "My clinician cannot see my scans",
+        "body": [
+          "Scans upload when the phone has a connection; they are kept on the phone until then, so nothing is lost offline. Check that you are signed in to the same account your clinic registered.",
+          "If scans still do not appear after a day with a working connection, write to us with the date of the scan and we will look."
+        ]
+      },
+      {
+        "heading": "Deleting your data",
+        "body": [
+          "Write to us from the email address on your account and ask. We delete the account and everything stored with it, photographs included, and confirm when it is done.",
+          "One exception: where a clinic holds its own medical record of your care, that record belongs to the clinic and you would need to ask them."
+        ]
+      },
+      {
+        "heading": "This app is not a doctor",
+        "body": [
+          "DiaFootCare records and tracks. It does not diagnose, does not grade a wound, and does not replace examination by a health professional.",
+          "See a clinician urgently if the wound grows quickly, smells, leaks pus, if the skin around it turns red or hot, or if you develop a fever. Do not wait for an app to tell you."
+        ]
+      }
+    ]
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "updated": "Last updated 20 August 2026",
+    "intro": "This policy explains what DiaFootCare collects, why, and who can see it. It covers the mobile app and the clinician dashboard at diafootcare.tech.",
+    "sections": [
+      {
+        "heading": "What we collect",
+        "body": [
+          "Your account: name, email address, chosen language, and a password we store only as a cryptographic hash, which we cannot read.",
+          "Health information you create in the app: photographs of the wound, the measurements taken from them, the tissue types found, the infection and circulation indicators, blood glucose readings, medications and the doses you record taking, appointments, self-care entries, consent records, and answers to any study questionnaires you complete.",
+          "Your device: a random identifier generated by the app, whether it is Android or iOS, and the app version. Not your phone number, not your contacts, not your location.",
+          "How much you use the app: daily counts of activity, used to understand whether the app is being used at all. Not what you tapped, or when."
+        ]
+      },
+      {
+        "heading": "Where the analysis happens",
+        "body": [
+          "By default the measurement and tissue analysis run on your own phone. The photograph does not leave the device to be analysed.",
+          "In server analysis mode, which your clinic enables, the photograph is sent to our server, analysed, and the result returned. The photograph is not used for anything else and is not kept beyond the request.",
+          "Photographs you save with a scan are uploaded and stored, so your care team can see them alongside the measurements."
+        ]
+      },
+      {
+        "heading": "Who can see it",
+        "body": [
+          "The clinicians at the service that registered you, and the staff who administer this system.",
+          "Nobody else. We do not sell your information, we do not show advertising, and there is no third-party analytics or tracking in the app.",
+          "Anonymous, aggregated figures, such as how many wounds were measured and how measurements compare with clinical assessment, may be published as research. Nothing in those figures identifies you, and no photograph is published."
+        ]
+      },
+      {
+        "heading": "Where it is kept, and for how long",
+        "body": [
+          "On servers we operate, not on a third-party health platform. Traffic between the app and the server is encrypted.",
+          "Your information is kept while your account exists. Ask us to delete it and we delete it, photographs included.",
+          "Data already included in a completed research analysis cannot be withdrawn from that analysis, because it is anonymous by then and we cannot tell which rows were yours."
+        ]
+      },
+      {
+        "heading": "Your choices",
+        "body": [
+          "You can ask for a copy of what we hold, ask us to correct it, ask us to delete it, or withdraw a consent you gave earlier. Write to the address below from the email on your account.",
+          "Withdrawing consent stops future collection. It does not undo care already given, or records your clinic holds independently."
+        ]
+      },
+      {
+        "heading": "Children",
+        "body": [
+          "DiaFootCare is for adults managing a diabetic foot ulcer, usually with a clinical team. It is not intended for anyone under 16, and we do not knowingly collect their information."
+        ]
+      },
+      {
+        "heading": "Changes to this policy",
+        "body": [
+          "If we change what we collect or who can see it, we will update this page and change the date at the top. Material changes will also be shown in the app."
+        ]
+      }
+    ]
   }
 }

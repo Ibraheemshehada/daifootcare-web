@@ -1,6 +1,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { RouterLink } from 'vue-router';
 import { motion } from 'motion-v';
 import { SUPPORTED_LOCALES, applyLocale } from '@/i18n';
 import ThemeToggle from '@/components/ThemeToggle.vue';
@@ -528,6 +529,17 @@ const accentClasses = {
         <footer class="border-t border-slate-200 px-5 py-10 dark:border-slate-800">
             <div class="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 text-sm text-slate-500 sm:flex-row dark:text-slate-500">
                 <p>© {{ new Date().getFullYear() }} {{ t('app.name') }}</p>
+                <!-- Both stores look for these on the site itself, not only in
+                     the submission form, and a patient looking for how to reach
+                     us starts at the bottom of the home page. -->
+                <nav class="flex gap-5">
+                    <RouterLink :to="{ name: 'support' }" class="hover:underline">
+                        {{ t('support.title') }}
+                    </RouterLink>
+                    <RouterLink :to="{ name: 'privacy' }" class="hover:underline">
+                        {{ t('privacy.title') }}
+                    </RouterLink>
+                </nav>
                 <p class="text-center sm:text-end">{{ t('landing.footer_disclaimer') }}</p>
             </div>
         </footer>

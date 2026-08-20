@@ -20,6 +20,24 @@ const routes = [
         meta: { layout: 'blank', title: 'landing.meta_title' },
     },
     {
+        // Public on purpose, and deliberately above the authenticated routes.
+        // The App Store requires a working support URL and a privacy policy
+        // URL, and a reviewer who is not signed in has to be able to read both.
+        // Until now these two paths fell through to the catch-all, which
+        // rendered the not-found page with an HTTP 200 - reachable to anything
+        // checking the status code, dead to anyone reading it.
+        path: '/support',
+        name: 'support',
+        component: () => import('@/pages/LegalPage.vue'),
+        meta: { layout: 'blank', title: 'support.title' },
+    },
+    {
+        path: '/privacy',
+        name: 'privacy',
+        component: () => import('@/pages/LegalPage.vue'),
+        meta: { layout: 'blank', title: 'privacy.title' },
+    },
+    {
         path: '/dashboard',
         name: 'dashboard',
         component: () => import('@/pages/DashboardPage.vue'),
