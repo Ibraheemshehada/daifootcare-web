@@ -60,23 +60,22 @@ class LegalPageController extends Controller
     }
 
     /**
-     * ?lang= wins, then Accept-Language, then English.
+     * ?lang= wins; otherwise English, always.
      *
-     * A crawler sends no useful Accept-Language and gets English, which is what
-     * the App Store review is conducted in.
+     * These two URLs are pinned into App Store Connect as the support and
+     * privacy links, so they must render identically for every visitor —
+     * the reviewer, a search crawler, or a patient with an Arabic-language
+     * phone. Deriving the locale from Accept-Language broke that: an
+     * ordinary browser sends its OS language unprompted, so the same URL
+     * silently served Arabic to some visitors and English to others with no
+     * way for either to ask for the other version. A fixed default with an
+     * explicit override is predictable for a person and stable for a bot.
      */
     private function resolveLocale(Request $request): string
     {
         $asked = (string) $request->query('lang', '');
-        if (in_array($asked, self::LOCALES, true)) {
-            return $asked;
-        }
 
-        $preferred = $request->getPreferredLanguage(self::LOCALES);
-
-        return in_array($preferred, self::LOCALES, true)
-            ? $preferred
-            : self::FALLBACK;
+        return in_array($asked, self::LOCALES, true) ? $asked : self::FALLBACK;
     }
 
     /**
