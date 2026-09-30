@@ -542,6 +542,13 @@ const accentClasses = {
                 </nav>
                 <p class="text-center sm:text-end">{{ t('landing.footer_disclaimer') }}</p>
             </div>
+            <!-- Developer attribution, kept separate from the copyright/legal
+                 row above: it is contact information for the person behind
+                 the app, not a legal notice. -->
+            <p class="mx-auto mt-4 max-w-6xl text-center text-xs text-slate-400 dark:text-slate-600">
+                {{ t('landing.footer_developer') }}
+                <a href="tel:+972592833136" class="hover:underline" dir="ltr">+972 59 283 3136</a>
+            </p>
         </footer>
     </div>
 </template>
