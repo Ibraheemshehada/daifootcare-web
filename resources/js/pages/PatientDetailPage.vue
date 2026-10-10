@@ -3,10 +3,12 @@ import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useApiResource } from '@/composables/useApiResource';
+import { useAuthedImage } from '@/composables/useAuthedImage';
 import PageHeader from '@/components/PageHeader.vue';
 import StatCard from '@/components/StatCard.vue';
 import TableSkeleton from '@/components/TableSkeleton.vue';
 import DeviceCard from '@/components/DeviceCard.vue';
+import ScanThumbnail from '@/components/ScanThumbnail.vue';
 import LineChart from '@/components/charts/LineChart.vue';
 import Meter from '@/components/charts/Meter.vue';
 
@@ -62,6 +64,23 @@ const showOverlay = ref(true);
 function openScan(scan) {
     openedScan.value = scan;
 }
+
+/**
+ * The modal's own image fetch, behind the Bearer token `api` carries.
+ *
+ * A bare <img :src="imageUrl(...)"> against this endpoint sends no
+ * Authorization header at all — an <img> tag cannot attach one — so every
+ * request arrived unauthenticated and the photo never rendered. Routing it
+ * through useAuthedImage(computed(...)) re-fetches automatically whenever
+ * openedScan or showOverlay changes, which is exactly the toggle between the
+ * two photos this modal offers.
+ */
+const modalImageUrl = computed(() => {
+    const scan = openedScan.value;
+    if (!scan?.local_uuid || !scan?.has_image) return null;
+    return scan.has_overlay && showOverlay.value ? overlayUrl(scan) : imageUrl(scan);
+});
+const { src: modalImageSrc, loading: modalImageLoading } = useAuthedImage(modalImageUrl);
 
 const glucoseSeries = computed(() =>
     [...(record.value.glucose ?? [])].reverse().map((g) => ({ x: g.measured_at, y: g.value_mgdl }))
@@ -209,15 +228,7 @@ const medBand = (v) => (v === null ? 'neutral' : v >= 80 ? 'success' : v >= 50 ?
                                          because a wound image tied to a named
                                          patient must not be reachable by
                                          guessing a path. -->
-                                    <img v-if="s.local_uuid && s.has_image"
-                                         :src="imageUrl(s)"
-                                         :alt="t('scans.photo')"
-                                         loading="lazy"
-                                         class="h-12 w-12 rounded-lg border border-slate-200 object-cover dark:border-slate-700" />
-                                    <span v-else
-                                          class="flex h-12 w-12 items-center justify-center rounded-lg border border-dashed border-slate-300 text-xs text-slate-400 dark:border-slate-700">
-                                        —
-                                    </span>
+                                    <ScanThumbnail :scan="s" />
                                 </td>
                                 <td class="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-300">
                                     {{ d(new Date(s.captured_at), 'short') }}
@@ -284,10 +295,14 @@ const medBand = (v) => (v === null ? 'neutral' : v >= 80 ? 'success' : v >= 50 ?
                                         {{ t('scans.overlay_hint') }}
                                     </span>
                                 </div>
-                                <img :src="(openedScan.has_overlay && showOverlay)
-                                            ? overlayUrl(openedScan) : imageUrl(openedScan)"
+                                <img v-if="modalImageSrc"
+                                     :src="modalImageSrc"
                                      :alt="t('scans.photo')"
                                      class="max-h-[55vh] w-full rounded-xl border border-slate-200 object-contain dark:border-slate-700" />
+                                <div v-else-if="modalImageLoading"
+                                     class="flex h-64 items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700">
+                                    <UIcon name="i-lucide-loader-circle" class="size-6 animate-spin text-slate-400" />
+                                </div>
                             </div>
                             <p v-else
                                class="mt-4 rounded-xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500 dark:border-slate-700">
